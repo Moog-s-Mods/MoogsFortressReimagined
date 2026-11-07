@@ -1,0 +1,19 @@
+{
+  "name": "mns:small_arena/start_pool",
+  "fallback": "minecraft:empty",
+  "elements": [
+    {
+      "weight": 1,
+      "element": {
+        "element_type": "moogs_structures:versioned_single_pool_element",
+        "location": "mns:1_20_5/small_arena/middle",
+        "locations": {
+          "1.20-1.20.4": "mns:1_20_0/small_arena/middle",
+          "1.20.5-1.20.6": "mns:1_20_5/small_arena/middle"
+        },
+        "processors": "mns:small_arena_spawners",
+        "projection": "rigid"
+      }
+    }
+  ]
+}
