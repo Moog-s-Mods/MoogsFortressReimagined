@@ -1,0 +1,19 @@
+{
+  "name": "mfr:intact/start/start_crossing_north",
+  "fallback": "mfr:intact/ends/junction_ends/junction_end",
+  "elements": [
+    {
+      "weight": 1,
+      "element": {
+        "location": "mfr:1_21_9/intact/crossings/small/small_crossing_north_straight_1",
+        "locations": {
+          "1.21-1.21.8": "mfr:1_21_0/intact/crossings/small/small_crossing_north_straight_1",
+          "1.21.9-26.3": "mfr:1_21_9/intact/crossings/small/small_crossing_north_straight_1"
+        },
+        "processors": "mfr:pillars",
+        "projection": "rigid",
+        "element_type": "moogs_structures:versioned_single_pool_element"
+      }
+    }
+  ]
+}

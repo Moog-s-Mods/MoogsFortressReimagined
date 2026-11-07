@@ -1,0 +1,19 @@
+{
+  "name": "mfr:intact/corners/corner_roofed_4",
+  "fallback": "mfr:intact/ends/junction_ends/junction_end",
+  "elements": [
+    {
+      "weight": 1,
+      "element": {
+        "location": "mfr:1_21_9/intact/corners/corner_roofed_2_4",
+        "locations": {
+          "1.21-1.21.8": "mfr:1_21_0/intact/corners/corner_roofed_2_4",
+          "1.21.9-26.3": "mfr:1_21_9/intact/corners/corner_roofed_2_4"
+        },
+        "processors": "mfr:pillars",
+        "projection": "rigid",
+        "element_type": "moogs_structures:versioned_single_pool_element"
+      }
+    }
+  ]
+}

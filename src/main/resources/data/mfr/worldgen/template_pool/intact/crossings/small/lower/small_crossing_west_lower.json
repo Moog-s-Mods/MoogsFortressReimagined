@@ -1,0 +1,19 @@
+{
+  "name": "mfr:intact/crossings/small/lower/small_crossing_west_lower",
+  "fallback": "mfr:intact/crossings/small/lower/small_crossing_west_lower",
+  "elements": [
+    {
+      "weight": 1,
+      "element": {
+        "location": "mfr:1_21_9/intact/crossings/small/lower/small_crossing_west_lower_1",
+        "locations": {
+          "1.21-1.21.8": "mfr:1_21_0/intact/crossings/small/lower/small_crossing_west_lower_1",
+          "1.21.9-26.3": "mfr:1_21_9/intact/crossings/small/lower/small_crossing_west_lower_1"
+        },
+        "processors": "mfr:pillars",
+        "projection": "rigid",
+        "element_type": "moogs_structures:versioned_single_pool_element"
+      }
+    }
+  ]
+}

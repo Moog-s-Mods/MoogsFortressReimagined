@@ -1,0 +1,82 @@
+{
+  "name": "mfr:intact/upper/roofless_upper_end",
+  "fallback": "minecraft:empty",
+  "elements": [
+    {
+      "weight": 1,
+      "element": {
+        "element_type": "moogs_structures:versioned_single_pool_element",
+        "location": "mfr:1_21_0/intact/upper/end_1",
+        "locations": {
+          "1.21-26.3": "mfr:1_21_0/intact/upper/end_1"
+        },
+        "processors": "mfr:pillars",
+        "projection": "rigid",
+        "mirror": "NONE",
+        "enhanced_terrain_adaptation": {
+          "kernel_size": 16,
+          "kernel_distance": 8,
+          "top": "carve",
+          "bottom": "carve"
+        }
+      }
+    },
+    {
+      "weight": 1,
+      "element": {
+        "element_type": "moogs_structures:versioned_single_pool_element",
+        "location": "mfr:1_21_0/intact/upper/end_2",
+        "locations": {
+          "1.21-26.3": "mfr:1_21_0/intact/upper/end_2"
+        },
+        "processors": "mfr:pillars",
+        "projection": "rigid",
+        "mirror": "NONE",
+        "enhanced_terrain_adaptation": {
+          "kernel_size": 16,
+          "kernel_distance": 8,
+          "top": "carve",
+          "bottom": "carve"
+        }
+      }
+    },
+    {
+      "weight": 1,
+      "element": {
+        "element_type": "moogs_structures:versioned_single_pool_element",
+        "location": "mfr:1_21_0/intact/upper/end_3",
+        "locations": {
+          "1.21-26.3": "mfr:1_21_0/intact/upper/end_3"
+        },
+        "processors": "mfr:pillars",
+        "projection": "rigid",
+        "mirror": "NONE",
+        "enhanced_terrain_adaptation": {
+          "kernel_size": 16,
+          "kernel_distance": 8,
+          "top": "carve",
+          "bottom": "carve"
+        }
+      }
+    },
+    {
+      "weight": 1,
+      "element": {
+        "element_type": "moogs_structures:versioned_single_pool_element",
+        "location": "mfr:1_21_0/intact/upper/end_4",
+        "locations": {
+          "1.21-26.3": "mfr:1_21_0/intact/upper/end_4"
+        },
+        "processors": "mfr:pillars",
+        "projection": "rigid",
+        "mirror": "NONE",
+        "enhanced_terrain_adaptation": {
+          "kernel_size": 16,
+          "kernel_distance": 8,
+          "top": "carve",
+          "bottom": "carve"
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,288 @@
+{
+  "name": "mfr:intact/corridors/roofed_any",
+  "fallback": "mfr:intact/ends/roofed_end",
+  "elements": [
+    {
+      "weight": 5,
+      "element": {
+        "location": "mfr:1_21_9/intact/corridors/roofed_single_straight_1",
+        "locations": {
+          "1.21-1.21.8": "mfr:1_21_0/intact/corridors/roofed_single_straight_1",
+          "1.21.9-26.3": "mfr:1_21_9/intact/corridors/roofed_single_straight_1"
+        },
+        "processors": "mfr:pillars",
+        "projection": "rigid",
+        "element_type": "moogs_structures:versioned_single_pool_element"
+      }
+    },
+    {
+      "weight": 5,
+      "element": {
+        "location": "mfr:1_21_9/intact/corridors/roofed_single_straight_2",
+        "locations": {
+          "1.21-1.21.8": "mfr:1_21_0/intact/corridors/roofed_single_straight_2",
+          "1.21.9-26.3": "mfr:1_21_9/intact/corridors/roofed_single_straight_2"
+        },
+        "processors": "mfr:pillars",
+        "projection": "rigid",
+        "element_type": "moogs_structures:versioned_single_pool_element"
+      }
+    },
+    {
+      "weight": 5,
+      "element": {
+        "location": "mfr:1_21_9/intact/corridors/roofed_single_straight_3",
+        "locations": {
+          "1.21-1.21.8": "mfr:1_21_0/intact/corridors/roofed_single_straight_3",
+          "1.21.9-26.3": "mfr:1_21_9/intact/corridors/roofed_single_straight_3"
+        },
+        "processors": "mfr:pillars",
+        "projection": "rigid",
+        "element_type": "moogs_structures:versioned_single_pool_element"
+      }
+    },
+    {
+      "weight": 5,
+      "element": {
+        "location": "mfr:1_21_9/intact/corridors/roofed_single_straight_4",
+        "locations": {
+          "1.21-1.21.8": "mfr:1_21_0/intact/corridors/roofed_single_straight_4",
+          "1.21.9-26.3": "mfr:1_21_9/intact/corridors/roofed_single_straight_4"
+        },
+        "processors": "mfr:pillars",
+        "projection": "rigid",
+        "element_type": "moogs_structures:versioned_single_pool_element"
+      }
+    },
+    {
+      "weight": 7,
+      "element": {
+        "location": "mfr:1_21_9/intact/corridors/halfroofed_straight_2",
+        "locations": {
+          "1.21-1.21.8": "mfr:1_21_0/intact/corridors/halfroofed_straight_2",
+          "1.21.9-26.3": "mfr:1_21_9/intact/corridors/halfroofed_straight_2"
+        },
+        "processors": "mfr:pillars",
+        "projection": "rigid",
+        "element_type": "moogs_structures:versioned_single_pool_element"
+      }
+    },
+    {
+      "weight": 12,
+      "element": {
+        "element_type": "moogs_structures:versioned_single_pool_element",
+        "location": "mfr:1_21_9/intact/corners/corner_roofed_1_2",
+        "locations": {
+          "1.21-1.21.8": "mfr:1_21_0/intact/corners/corner_roofed_1_2",
+          "1.21.9-26.3": "mfr:1_21_9/intact/corners/corner_roofed_1_2"
+        },
+        "processors": "mfr:pillars",
+        "projection": "rigid",
+        "enhanced_terrain_adaptation": {
+          "kernel_size": 16,
+          "kernel_distance": 8,
+          "top": "carve",
+          "bottom": "carve",
+          "band": {
+            "bottom": 17,
+            "top": 23
+          }
+        }
+      }
+    },
+    {
+      "weight": 12,
+      "element": {
+        "element_type": "moogs_structures:versioned_single_pool_element",
+        "location": "mfr:1_21_9/intact/corners/corner_roofed_1_1",
+        "locations": {
+          "1.21-1.21.8": "mfr:1_21_0/intact/corners/corner_roofed_1_1",
+          "1.21.9-26.3": "mfr:1_21_9/intact/corners/corner_roofed_1_1"
+        },
+        "processors": "mfr:pillars",
+        "projection": "rigid",
+        "enhanced_terrain_adaptation": {
+          "kernel_size": 16,
+          "kernel_distance": 8,
+          "top": "carve",
+          "bottom": "carve",
+          "band": {
+            "bottom": 17,
+            "top": 23
+          }
+        }
+      }
+    },
+    {
+      "weight": 20,
+      "element": {
+        "location": "mfr:1_21_9/intact/forks/roofed_fork_main_1",
+        "locations": {
+          "1.21-1.21.1": "mfr:1_21_0/intact/forks/roofed_fork_main_1",
+          "1.21.2-1.21.4": "mfr:1_21_2/intact/forks/roofed_fork_main_1",
+          "1.21.5-1.21.8": "mfr:1_21_5/intact/forks/roofed_fork_main_1",
+          "1.21.9-26.3": "mfr:1_21_9/intact/forks/roofed_fork_main_1"
+        },
+        "processors": "mfr:pillars_armored",
+        "projection": "rigid",
+        "element_type": "moogs_structures:versioned_single_pool_element"
+      }
+    },
+    {
+      "weight": 20,
+      "element": {
+        "location": "mfr:1_21_9/intact/forks/roofed_fork_main_2",
+        "locations": {
+          "1.21-1.21.1": "mfr:1_21_0/intact/forks/roofed_fork_main_2",
+          "1.21.2-1.21.4": "mfr:1_21_2/intact/forks/roofed_fork_main_2",
+          "1.21.5-1.21.8": "mfr:1_21_5/intact/forks/roofed_fork_main_2",
+          "1.21.9-26.3": "mfr:1_21_9/intact/forks/roofed_fork_main_2"
+        },
+        "processors": "mfr:pillars_armored",
+        "projection": "rigid",
+        "element_type": "moogs_structures:versioned_single_pool_element"
+      }
+    },
+    {
+      "weight": 5,
+      "element": {
+        "location": "mfr:1_21_9/intact/corridors/roofed_single_straight_5",
+        "locations": {
+          "1.21-1.21.8": "mfr:1_21_0/intact/corridors/roofed_single_straight_5",
+          "1.21.9-26.3": "mfr:1_21_9/intact/corridors/roofed_single_straight_5"
+        },
+        "processors": "mfr:pillars",
+        "projection": "rigid",
+        "element_type": "moogs_structures:versioned_single_pool_element"
+      }
+    },
+    {
+      "weight": 5,
+      "element": {
+        "location": "mfr:1_21_9/intact/corridors/roofed_single_straight_6",
+        "locations": {
+          "1.21-1.21.8": "mfr:1_21_0/intact/corridors/roofed_single_straight_6",
+          "1.21.9-26.3": "mfr:1_21_9/intact/corridors/roofed_single_straight_6"
+        },
+        "processors": "mfr:pillars",
+        "projection": "rigid",
+        "element_type": "moogs_structures:versioned_single_pool_element"
+      }
+    },
+    {
+      "weight": 5,
+      "element": {
+        "location": "mfr:1_21_9/intact/corridors/roofed_single_straight_7",
+        "locations": {
+          "1.21-1.21.8": "mfr:1_21_0/intact/corridors/roofed_single_straight_7",
+          "1.21.9-26.3": "mfr:1_21_9/intact/corridors/roofed_single_straight_7"
+        },
+        "processors": "mfr:pillars",
+        "projection": "rigid",
+        "element_type": "moogs_structures:versioned_single_pool_element"
+      }
+    },
+    {
+      "weight": 5,
+      "element": {
+        "location": "mfr:1_21_9/intact/corridors/roofed_single_straight_8",
+        "locations": {
+          "1.21-1.21.8": "mfr:1_21_0/intact/corridors/roofed_single_straight_8",
+          "1.21.9-26.3": "mfr:1_21_9/intact/corridors/roofed_single_straight_8"
+        },
+        "processors": "mfr:pillars",
+        "projection": "rigid",
+        "element_type": "moogs_structures:versioned_single_pool_element"
+      }
+    },
+    {
+      "weight": 7,
+      "element": {
+        "location": "mfr:1_21_9/intact/corridors/halfroofed_straight_4",
+        "locations": {
+          "1.21-1.21.8": "mfr:1_21_0/intact/corridors/halfroofed_straight_4",
+          "1.21.9-26.3": "mfr:1_21_9/intact/corridors/halfroofed_straight_4"
+        },
+        "processors": "mfr:pillars",
+        "projection": "rigid",
+        "element_type": "moogs_structures:versioned_single_pool_element"
+      }
+    },
+    {
+      "weight": 20,
+      "element": {
+        "location": "mfr:1_21_9/intact/forks/roofed_fork_main_3",
+        "locations": {
+          "1.21-1.21.1": "mfr:1_21_0/intact/forks/roofed_fork_main_3",
+          "1.21.2-1.21.4": "mfr:1_21_2/intact/forks/roofed_fork_main_3",
+          "1.21.5-1.21.8": "mfr:1_21_5/intact/forks/roofed_fork_main_3",
+          "1.21.9-26.3": "mfr:1_21_9/intact/forks/roofed_fork_main_3"
+        },
+        "processors": "mfr:pillars_armored",
+        "projection": "rigid",
+        "element_type": "moogs_structures:versioned_single_pool_element"
+      }
+    },
+    {
+      "weight": 20,
+      "element": {
+        "location": "mfr:1_21_9/intact/forks/roofed_fork_main_4",
+        "locations": {
+          "1.21-1.21.1": "mfr:1_21_0/intact/forks/roofed_fork_main_4",
+          "1.21.2-1.21.4": "mfr:1_21_2/intact/forks/roofed_fork_main_4",
+          "1.21.5-1.21.8": "mfr:1_21_5/intact/forks/roofed_fork_main_4",
+          "1.21.9-26.3": "mfr:1_21_9/intact/forks/roofed_fork_main_4"
+        },
+        "processors": "mfr:pillars_armored",
+        "projection": "rigid",
+        "element_type": "moogs_structures:versioned_single_pool_element"
+      }
+    },
+    {
+      "weight": 12,
+      "element": {
+        "element_type": "moogs_structures:versioned_single_pool_element",
+        "location": "mfr:1_21_9/intact/corners/corner_roofed_1_3",
+        "locations": {
+          "1.21-1.21.8": "mfr:1_21_0/intact/corners/corner_roofed_1_3",
+          "1.21.9-26.3": "mfr:1_21_9/intact/corners/corner_roofed_1_3"
+        },
+        "processors": "mfr:pillars",
+        "projection": "rigid",
+        "enhanced_terrain_adaptation": {
+          "kernel_size": 16,
+          "kernel_distance": 8,
+          "top": "carve",
+          "bottom": "carve",
+          "band": {
+            "bottom": 17,
+            "top": 23
+          }
+        }
+      }
+    },
+    {
+      "weight": 12,
+      "element": {
+        "element_type": "moogs_structures:versioned_single_pool_element",
+        "location": "mfr:1_21_9/intact/corners/corner_roofed_1_4",
+        "locations": {
+          "1.21-1.21.8": "mfr:1_21_0/intact/corners/corner_roofed_1_4",
+          "1.21.9-26.3": "mfr:1_21_9/intact/corners/corner_roofed_1_4"
+        },
+        "processors": "mfr:pillars",
+        "projection": "rigid",
+        "enhanced_terrain_adaptation": {
+          "kernel_size": 16,
+          "kernel_distance": 8,
+          "top": "carve",
+          "bottom": "carve",
+          "band": {
+            "bottom": 17,
+            "top": 23
+          }
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,32 @@
+{
+  "name": "mfr:intact/crossings/medium/medium_crossing_south_2",
+  "fallback": "mfr:intact/ends/junction_ends/junction_end",
+  "elements": [
+    {
+      "weight": 1,
+      "element": {
+        "element_type": "moogs_structures:versioned_single_pool_element",
+        "location": "mfr:1_21_9/intact/crossings/medium/medium_crossing_south_2",
+        "locations": {
+          "1.21-1.21.8": "mfr:1_21_0/intact/crossings/medium/medium_crossing_south_2",
+          "1.21.9-26.3": "mfr:1_21_9/intact/crossings/medium/medium_crossing_south_2"
+        },
+        "processors": "mfr:pillars",
+        "projection": "rigid"
+      }
+    },
+    {
+      "weight": 1,
+      "element": {
+        "element_type": "moogs_structures:versioned_single_pool_element",
+        "location": "mfr:1_21_9/intact/crossings/medium/medium_crossing_west_2",
+        "locations": {
+          "1.21-1.21.8": "mfr:1_21_0/intact/crossings/medium/medium_crossing_west_2",
+          "1.21.9-26.3": "mfr:1_21_9/intact/crossings/medium/medium_crossing_west_2"
+        },
+        "processors": "mfr:pillars",
+        "projection": "rigid"
+      }
+    }
+  ]
+}
