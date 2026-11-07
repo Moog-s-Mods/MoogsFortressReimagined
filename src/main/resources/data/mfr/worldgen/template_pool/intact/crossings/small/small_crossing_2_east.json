@@ -1,0 +1,19 @@
+{
+  "name": "mfr:intact/crossings/small/small_crossing_2_east",
+  "fallback": "minecraft:empty",
+  "elements": [
+    {
+      "weight": 1,
+      "element": {
+        "location": "mfr:1_20_5/intact/crossings/small/small_crossing_east_straight_2",
+        "locations": {
+          "1.20-1.20.4": "mfr:1_20_0/intact/crossings/small/small_crossing_east_straight_2",
+          "1.20.5-1.20.6": "mfr:1_20_5/intact/crossings/small/small_crossing_east_straight_2"
+        },
+        "processors": "mfr:pillars",
+        "projection": "rigid",
+        "element_type": "moogs_structures:versioned_single_pool_element"
+      }
+    }
+  ]
+}
