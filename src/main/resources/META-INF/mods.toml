@@ -4,9 +4,9 @@ loaderVersion = '[40,)'
 license = 'GNU Lesser General Public License v3.0'
 showAsResourcePack = false
 mods = [
-	{ modId = '${mod_id}', version = '${version}', displayName = "${mod_name}", description = '${mod_description}', logoFile = 'assets/mns/icon.png', credits = 'Built by Phantax', authors = 'FinnDog', displayURL = '${mod_homepage}' },
+	{ modId = '${mod_id}', version = '${version}', displayName = "${mod_name}", description = '${mod_description}', logoFile = 'assets/mfr/icon.png', credits = 'Built by Phantax', authors = 'FinnDog', displayURL = '${mod_homepage}' },
 ]
-[[dependencies.mns]]
+[[dependencies.mfr]]
 modId = "moogs_structures"
 mandatory = true
 versionRange = "${structure_lib_version_range}"
