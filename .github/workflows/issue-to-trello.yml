@@ -33,7 +33,7 @@ jobs:
         env:
           TRELLO_API_KEY: ${{ secrets.TRELLO_API_KEY }}
           TRELLO_API_TOKEN: ${{ secrets.TRELLO_API_TOKEN }}
-          TRELLO_LIST_ID: "68a72f716fe64b0c1e3ce75a"
+          TRELLO_LIST_ID: "6a7f07a3c076dc8caf56b9bd"  # Trello list "MFR - Moog's Fortress Reimagined"
           INCLUDE_BODY: "true"
           EVENT_ACTION: ${{ github.event.action }}
           ISSUE_JSON: ${{ toJSON(github.event.issue) }}
