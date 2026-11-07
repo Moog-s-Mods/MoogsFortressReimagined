@@ -1,0 +1,93 @@
+plugins {
+    id 'java'
+}
+
+group = "com.finndog"
+
+java {
+    withSourcesJar()
+}
+
+// gradle.properties is snake_case fleet-wide (release-actions docs/v2-contracts.md,
+// "Fleet conventions"). Publishing configuration lives in .github/moogs-publish.yml on
+// the repository's default branch — Gradle's only job here is `./gradlew build` +
+// `buildDatapack`.
+def modName = (project.findProperty('mod_name') ?: project.name) as String
+def mcVersion = project.findProperty('minecraft_version') as String
+def modId = project.findProperty('mod_id') as String
+version = project.findProperty('mod_version') as String
+def modDescription = project.findProperty('mod_description') as String
+def modHomepage = project.findProperty('mod_homepage') as String
+def modSources = project.findProperty('mod_sources') as String
+def modIssues = project.findProperty('mod_issues') as String
+def modDiscord = project.findProperty('mod_discord') as String
+def modKofi = project.findProperty('mod_kofi') as String
+def modCurseforge = project.findProperty('mod_curseforge') as String
+def modModrinth = project.findProperty('mod_modrinth') as String
+def modReleases = project.findProperty('mod_releases') as String
+def structureLibVersionRange = project.findProperty('structure_lib_version_range') as String
+
+repositories {
+    mavenCentral()
+}
+
+tasks.processResources {
+    def meta = [
+            'version': version,
+            'mod_name': modName,
+            'mc_version': mcVersion,
+            'mod_id': modId,
+            'mod_description': modDescription,
+            'mod_homepage': modHomepage,
+            'mod_sources': modSources,
+            'mod_issues': modIssues,
+            'mod_discord': modDiscord,
+            'mod_kofi': modKofi,
+            'mod_curseforge': modCurseforge,
+            'mod_modrinth': modModrinth,
+            'mod_releases': modReleases,
+            'structure_lib_version_range': structureLibVersionRange,
+    ]
+    filesMatching('fabric.mod.json') { expand(meta) }
+    filesMatching('quilt.mod.json') { expand(meta) }
+    filesMatching('META-INF/*.toml') { expand(meta) }
+    filesMatching('pack.mcmeta') { expand(meta) }
+}
+
+// Fleet-standard artifact filename: {ModName}-{loader}-{mc}-{version}. A universal jar has
+// no single loader, so `universal` fills the loader slot. Setting archivesName rather than
+// jar.archiveFileName keeps the sources jar on the same stem.
+base {
+    archivesName = "${modName}-universal-${mcVersion}"
+}
+
+// Config datapack
+// Bundles the mod's processed `data` folder + pack.mcmeta into a standalone datapack
+// zip so players can download it and fine-tune our structure settings. Installed on top
+// of the mod, it overrides whichever of the mod's settings they have changed. The icon
+// is reused as the datapack's pack.png.
+// `datapack` is the descriptor because it is the real Modrinth loader tag the config pack
+// publishes under. The mod-name prefix stays as-is: these are player-visible download names.
+def datapackArchiveName = "${modName}-datapack-${mcVersion}-${project.version}.zip"
+
+tasks.register('buildDatapack', Zip) {
+    group = 'build'
+    description = 'Assembles the config datapack zip from the processed mod resources.'
+    dependsOn tasks.named('processResources')
+
+    def resourcesDir = sourceSets.main.output.resourcesDir
+    archiveFileName.set(datapackArchiveName)
+    destinationDirectory.set(layout.buildDirectory.dir('datapack'))
+
+    // pack.mcmeta (already has ${mod_name} expanded by processResources) + the full data folder.
+    from(resourcesDir) {
+        include 'pack.mcmeta'
+        include 'data/**'
+    }
+    // The mod's icon becomes the datapack's pack.png at the zip root.
+    from(resourcesDir) {
+        include "assets/${modId}/icon.png"
+        includeEmptyDirs = false
+        eachFile { it.path = 'pack.png' }
+    }
+}

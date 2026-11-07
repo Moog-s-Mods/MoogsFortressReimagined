@@ -1,0 +1,21 @@
+{
+  "name": "mns:mega_arenas/mobs/drakebone_tyrant",
+  "fallback": "minecraft:empty",
+  "elements": [
+    {
+      "weight": 1,
+      "element": {
+        "location": "mns:1_21_6/mega_arenas/mobs/drakebone_tyrant",
+        "locations": {
+          "1.21-1.21.1": "mns:1_21_0/mega_arenas/mobs/drakebone_tyrant",
+          "1.21.2-1.21.4": "mns:1_21_2/mega_arenas/mobs/drakebone_tyrant",
+          "1.21.5": "mns:1_21_5/mega_arenas/mobs/drakebone_tyrant",
+          "1.21.6-26.3": "mns:1_21_6/mega_arenas/mobs/drakebone_tyrant"
+        },
+        "processors": "minecraft:empty",
+        "projection": "rigid",
+        "element_type": "moogs_structures:versioned_single_pool_element"
+      }
+    }
+  ]
+}
