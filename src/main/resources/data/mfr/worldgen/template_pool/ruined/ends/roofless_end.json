@@ -1,0 +1,110 @@
+{
+  "name": "mfr:ruined/ends/roofless_end",
+  "fallback": "minecraft:empty",
+  "elements": [
+    {
+      "weight": 1,
+      "element": {
+        "location": "mfr:1_20_5/ruined/ends/roofless_end_1",
+        "locations": {
+          "1.20-1.20.4": "mfr:1_20_0/ruined/ends/roofless_end_1",
+          "1.20.5-1.20.6": "mfr:1_20_5/ruined/ends/roofless_end_1"
+        },
+        "processors": "mfr:pillars",
+        "projection": "rigid",
+        "element_type": "moogs_structures:versioned_single_pool_element"
+      }
+    },
+    {
+      "weight": 1,
+      "element": {
+        "location": "mfr:1_20_5/ruined/ends/roofless_end_2",
+        "locations": {
+          "1.20-1.20.4": "mfr:1_20_0/ruined/ends/roofless_end_2",
+          "1.20.5-1.20.6": "mfr:1_20_5/ruined/ends/roofless_end_2"
+        },
+        "processors": "mfr:pillars",
+        "projection": "rigid",
+        "element_type": "moogs_structures:versioned_single_pool_element"
+      }
+    },
+    {
+      "weight": 1,
+      "element": {
+        "location": "mfr:1_20_5/ruined/ends/roofless_end_3",
+        "locations": {
+          "1.20-1.20.4": "mfr:1_20_0/ruined/ends/roofless_end_3",
+          "1.20.5-1.20.6": "mfr:1_20_5/ruined/ends/roofless_end_3"
+        },
+        "processors": "mfr:pillars",
+        "projection": "rigid",
+        "element_type": "moogs_structures:versioned_single_pool_element"
+      }
+    },
+    {
+      "weight": 1,
+      "element": {
+        "location": "mfr:1_20_5/ruined/ends/roofless_end_4",
+        "locations": {
+          "1.20-1.20.4": "mfr:1_20_0/ruined/ends/roofless_end_4",
+          "1.20.5-1.20.6": "mfr:1_20_5/ruined/ends/roofless_end_4"
+        },
+        "processors": "mfr:pillars",
+        "projection": "rigid",
+        "element_type": "moogs_structures:versioned_single_pool_element"
+      }
+    },
+    {
+      "weight": 1,
+      "element": {
+        "location": "mfr:1_20_5/ruined/ends/roofless_end_5",
+        "locations": {
+          "1.20-1.20.4": "mfr:1_20_0/ruined/ends/roofless_end_5",
+          "1.20.5-1.20.6": "mfr:1_20_5/ruined/ends/roofless_end_5"
+        },
+        "processors": "mfr:pillars",
+        "projection": "rigid",
+        "element_type": "moogs_structures:versioned_single_pool_element"
+      }
+    },
+    {
+      "weight": 1,
+      "element": {
+        "location": "mfr:1_20_5/ruined/ends/roofless_end_6",
+        "locations": {
+          "1.20-1.20.4": "mfr:1_20_0/ruined/ends/roofless_end_6",
+          "1.20.5-1.20.6": "mfr:1_20_5/ruined/ends/roofless_end_6"
+        },
+        "processors": "mfr:pillars",
+        "projection": "rigid",
+        "element_type": "moogs_structures:versioned_single_pool_element"
+      }
+    },
+    {
+      "weight": 1,
+      "element": {
+        "location": "mfr:1_20_5/ruined/ends/roofless_end_7",
+        "locations": {
+          "1.20-1.20.4": "mfr:1_20_0/ruined/ends/roofless_end_7",
+          "1.20.5-1.20.6": "mfr:1_20_5/ruined/ends/roofless_end_7"
+        },
+        "processors": "mfr:pillars",
+        "projection": "rigid",
+        "element_type": "moogs_structures:versioned_single_pool_element"
+      }
+    },
+    {
+      "weight": 1,
+      "element": {
+        "location": "mfr:1_20_5/ruined/ends/roofless_end_8",
+        "locations": {
+          "1.20-1.20.4": "mfr:1_20_0/ruined/ends/roofless_end_8",
+          "1.20.5-1.20.6": "mfr:1_20_5/ruined/ends/roofless_end_8"
+        },
+        "processors": "mfr:pillars",
+        "projection": "rigid",
+        "element_type": "moogs_structures:versioned_single_pool_element"
+      }
+    }
+  ]
+}

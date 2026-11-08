@@ -2,6 +2,7 @@
   "replace": false,
   "values": [
     "mfr:intact_fortress",
-    "mfr:damaged_fortress"
+    "mfr:damaged_fortress",
+    "mfr:ruined_fortress"
   ]
 }

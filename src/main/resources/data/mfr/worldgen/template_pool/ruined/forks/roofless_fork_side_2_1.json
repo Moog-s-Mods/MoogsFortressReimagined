@@ -1,0 +1,19 @@
+{
+  "name": "mfr:ruined/forks/roofless_fork_side_2_1",
+  "fallback": "minecraft:empty",
+  "elements": [
+    {
+      "weight": 1,
+      "element": {
+        "location": "mfr:1_20_5/ruined/forks/roofless_fork_side_2_1",
+        "locations": {
+          "1.20-1.20.4": "mfr:1_20_0/ruined/forks/roofless_fork_side_2_1",
+          "1.20.5-1.20.6": "mfr:1_20_5/ruined/forks/roofless_fork_side_2_1"
+        },
+        "processors": "mfr:pillars",
+        "projection": "rigid",
+        "element_type": "moogs_structures:versioned_single_pool_element"
+      }
+    }
+  ]
+}
