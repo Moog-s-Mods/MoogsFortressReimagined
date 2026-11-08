@@ -259,10 +259,16 @@ def map_destination(v):
     ns, _, path = tag.partition(":")
     if DATA_ROOT and (DATA_ROOT / ns / "tags" / "worldgen" / "structure" / (path + ".json")).is_file():
         return "#" + tag
+    fix = ""
+    if tag == "minecraft:buried_treasure":
+        fix = (" To fix: change the old form's destination to \"minecraft:on_treasure_maps\" (vanilla's "
+               "buried treasure map tag) and run this again; the 26.3 form then gets "
+               "\"#minecraft:on_treasure_maps\".")
     R.problem(f"exploration_map destination \"{v}\" is not a structure tag here: 1.21 to 26.2 read it "
               f"as a tag, so that map finds nothing there, while 26.3 reads it as the structure "
-              f"\"{tag}\" itself. The 26.3 form keeps \"{v}\"; check which was meant (a tag would "
-              f"be \"#...\")")
+              f"\"{tag}\" itself. The 26.3 form keeps \"{v}\" for now." + (fix or
+              " To fix: put a structure tag in the old form's destination (vanilla's map tags are "
+              "minecraft:on_*_maps) and run this again."))
     return v
 
 
