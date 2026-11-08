@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 """
-Give loot tables the Minecraft 26.3 form next to the old one, so one file works on 1.21 to 26.3.
+Give loot data the Minecraft 26.3 form next to the old one, so one file works on 1.21 to 26.3.
 
-Minecraft 26.3 changed how loot tables are written, and it ignores the old keys without any
-error: a table written for 1.21 to 26.2 loads on 26.3 with its functions and conditions gone
-(stack counts, enchanting, damage, random chances). Read from the 26.3 jar's own tables and code:
+Minecraft 26.3 changed how loot functions and conditions are written, and it ignores the old keys
+without any error: a loot table written for 1.21 to 26.2 loads on 26.3 with its functions and
+conditions gone (stack counts, enchanting, damage, random chances). Read from the 26.3 jar's own
+tables and code:
 
     old (1.21 to 26.2)                          26.3
     "functions": [ {...}, ... ]                 "modifier": {...}   (or a list when several)
@@ -22,25 +23,51 @@ The old keys stay the source: edit those, then run this again to refresh the 26.
     condition block_state_property {block, properties}   -> match_block {blocks, state}
     condition or function "reference" {name}             -> the name alone, as a string
     damage_source_properties tag ids                     -> with a "#" ("#minecraft:is_fire")
-    exploration_map without a destination                -> "#minecraft:on_treasure_maps", the old
-                                                            default (26.3 requires it)
+    exploration_map destination: a structure tag id      -> "#" + the tag (26.3 reads a bare id as
+                                                            one structure); 26.3 requires it, so a
+                                                            missing one gets the old default
+                                                            "#minecraft:on_treasure_maps"; the five
+                                                            explorer map tags 26.3 renamed get their
+                                                            new names; one that isn't a tag is reported
     tag entry "name": "x"                                -> "items": "#x" (beside "name")
+    a type id with no namespace ("set_count")            -> "minecraft:set_count"
 Things it cannot convert safely (value_check, the "sum" number provider) are reported.
 
-Usage (from the project root):
-    python scripts/loot_26_3.py                 # every loot_table folder under src/main/resources/data
-    python scripts/loot_26_3.py <folder|file> ...
-    python scripts/loot_26_3.py --check [...]   # change nothing; exit 1 if any table needs this script
+What it looks at, under each path given (a mod repo, a data folder, a loot folder or one file):
+    loot_table/      both forms side by side, as above
+    item_modifier/   each function gets both forms in the same object ("function" and "type",
+                     "conditions" and "condition"); the two games each read only their own keys
+    predicate/       the same for conditions; a predicate file that is a list can't hold both
+                     (26.3 wants one object) and is reported as needing an overlay
+    anything else under data/ with old-form functions or conditions in it (advancements,
+                     enchantments...) is reported, not changed
+Plural 1.20 folders (loot_tables...) are skipped: 1.20 never runs on 26.3. So are pack overlays
+whose formats stop before 26.3's (121), which 26.3 never reads.
 
-It works on any folder of loot table JSON, so it can be pointed at another mod's tables.
-Only the 1.21 branches need it: 1.20 never runs on 26.3.
+Two things that are the same on every version, which it reports so they can be looked at:
+    - enchant_randomly / enchant_with_levels with no "options" draw from every enchantment in
+      the game: curses, treasure-only ones (mending, soul speed, swift sneak...) and other mods'.
+      Vanilla chests use "#minecraft:on_random_loot". --add-enchant-options adds that.
+    - type ids with no namespace ("enchant_randomly") read as minecraft: on every version.
+
+Usage:
+    python loot_26_3.py [path ...]           # default: the current folder (a mod repo's root)
+    python loot_26_3.py --dry-run [path ...] # change nothing, list what would change; exit 1 if
+                                             # anything would (--check does the same)
+    python loot_26_3.py --dry-run --diff     # also show each change
+    python loot_26_3.py --add-enchant-options [path ...]
+
+It only needs Python 3.9+, so it can be copied into any mod's scripts/ or run from here.
+Only the 1.21 branches need it.
 """
 import argparse
+import difflib
 import json
+import re
 import sys
 from pathlib import Path
 
-PROJECT_ROOT = Path(__file__).resolve().parent.parent
+NEW_FORMAT = 121  # 26.3's data pack format
 
 # Functions whose fields hold more loot data that has to be converted too.
 NESTED_FUNCTION_FIELDS = {
@@ -60,18 +87,59 @@ NOT_CONVERTED = {
     "minecraft:value_check": "26.3 split it into int_value_check and float_value_check",
     "minecraft:sum": "26.3 has no sum number provider (it has add)",
 }
+ENCHANT_FUNCTIONS = ("enchant_randomly", "enchant_with_levels")
+ON_RANDOM_LOOT = "#minecraft:on_random_loot"
+# exploration_map "destination": a structure tag id before 26.3, a structure, list or "#tag" in
+# 26.3. Vanilla's map tags, and the ones 26.3 renamed (same contents, new name).
+MAP_TAGS_RENAMED = {
+    "minecraft:on_jungle_explorer_maps": "minecraft:on_jungle_pyramid_maps",
+    "minecraft:on_ocean_explorer_maps": "minecraft:on_ocean_monument_maps",
+    "minecraft:on_swamp_explorer_maps": "minecraft:on_swamp_hut_maps",
+    "minecraft:on_trial_chambers_maps": "minecraft:on_buried_trial_chambers_maps",
+    "minecraft:on_woodland_explorer_maps": "minecraft:on_woodland_mansion_maps",
+}
+VANILLA_STRUCTURE_TAGS = {"minecraft:" + t for t in (
+    "on_treasure_maps on_desert_village_maps on_plains_village_maps on_savanna_village_maps "
+    "on_snowy_village_maps on_taiga_village_maps on_ancient_city_maps on_buried_trial_chambers_maps "
+    "on_desert_pyramid_maps on_jungle_pyramid_maps on_mineshaft_maps on_ocean_monument_maps "
+    "on_ocean_ruin_warm_maps on_swamp_hut_maps on_woodland_mansion_maps abandoned_camp mineshaft "
+    "ocean_ruin ruined_portal shipwreck village cats_spawn_in cats_spawn_as_black dolphin_located "
+    "eye_of_ender_located").split()}
 
-problems = []  # (file, message), filled while converting
-current_file = ""
+KINDS = {"loot_table", "item_modifier", "predicate"}
+OLD_KINDS = {"loot_tables", "item_modifiers", "predicates"}
+SKIP_DIRS = {".git", ".gradle", "build", "out", "node_modules", ".idea"}
 
 
-def problem(msg):
-    if (current_file, msg) not in problems:
-        problems.append((current_file, msg))
+class Report:
+    """What converting one file found: problems (fix by hand) and notes (worth a look)."""
+
+    def __init__(self):
+        self.problems = []
+        self.notes = {}
+
+    def problem(self, msg):
+        if msg not in self.problems:
+            self.problems.append(msg)
+
+    def note(self, key):
+        self.notes[key] = self.notes.get(key, 0) + 1
+
+
+R = Report()  # the current file's report
+ADD_ENCHANT_OPTIONS = False
+DATA_ROOT = None  # the data/ folder the current file is in, if any
 
 
 def short(type_id):
     return type_id.split(":", 1)[1] if isinstance(type_id, str) and ":" in type_id else type_id
+
+
+def namespaced(type_id):
+    if isinstance(type_id, str) and ":" not in type_id and not type_id.startswith("#"):
+        R.note("ids without a namespace")
+        return "minecraft:" + type_id
+    return type_id
 
 
 def tagged(v):
@@ -86,12 +154,14 @@ def plain(v):
     if isinstance(v, dict):
         t = v.get("type")
         if t in NOT_CONVERTED:
-            problem(f"{t}: {NOT_CONVERTED[t]}; copied as it is, fix it by hand")
+            R.problem(f"{t}: {NOT_CONVERTED[t]}; copied as it is, fix it by hand")
         return {k: plain(x) for k, x in v.items()}
     if isinstance(v, list):
         return [plain(x) for x in v]
     return v
 
+
+# --- Old form -> 26.3 form ---------------------------------------------------------------------
 
 def new_condition(c):
     """One old-form condition -> 26.3 form."""
@@ -99,12 +169,12 @@ def new_condition(c):
         return c
     if isinstance(c, list):  # a list in a condition's place means all of them
         return new_condition_list(c)
-    ctype = c.get("condition", c.get("type"))
+    ctype = namespaced(c.get("condition", c.get("type")))
     sid = short(ctype)
     if sid == "reference":
         return c["name"]
     if ctype in NOT_CONVERTED:
-        problem(f"{ctype}: {NOT_CONVERTED[ctype]}; copied as it is, fix it by hand")
+        R.problem(f"{ctype}: {NOT_CONVERTED[ctype]}; copied as it is, fix it by hand")
     nested = NESTED_CONDITION_FIELDS.get(sid, {})
     out = {"type": ctype}
     for k, v in c.items():
@@ -147,12 +217,12 @@ def new_function(f):
         return f
     if isinstance(f, list):
         return new_function_list(f)
-    ftype = f.get("function", f.get("type"))
+    ftype = namespaced(f.get("function", f.get("type")))
     sid = short(ftype)
     if sid == "reference":
         if f.get("conditions"):
-            problem(f"a reference function with conditions ({f['name']}): 26.3 references carry "
-                    f"no conditions; the conditions were left out of the 26.3 form")
+            R.problem(f"a reference function with conditions ({f['name']}): 26.3 references carry "
+                      f"no conditions; the conditions were left out of the 26.3 form")
         return f["name"]
     nested = NESTED_FUNCTION_FIELDS.get(sid, {})
     out = {"type": ftype}
@@ -173,9 +243,27 @@ def new_function(f):
             out[k] = [convert_entry(dict(e), only_new=True) for e in v]
         else:
             out[k] = plain(v)
-    if sid == "exploration_map" and "destination" not in out:
-        out["destination"] = "#minecraft:on_treasure_maps"
+    if sid == "exploration_map":
+        out["destination"] = map_destination(out.get("destination", "minecraft:on_treasure_maps"))
     return out
+
+
+def map_destination(v):
+    """An old exploration_map destination (always a structure tag) in 26.3's form."""
+    if not isinstance(v, str):
+        return v
+    tag = namespaced(v.lstrip("#"))
+    tag = MAP_TAGS_RENAMED.get(tag, tag)
+    if tag in VANILLA_STRUCTURE_TAGS:
+        return "#" + tag
+    ns, _, path = tag.partition(":")
+    if DATA_ROOT and (DATA_ROOT / ns / "tags" / "worldgen" / "structure" / (path + ".json")).is_file():
+        return "#" + tag
+    R.problem(f"exploration_map destination \"{v}\" is not a structure tag here: 1.21 to 26.2 read it "
+              f"as a tag, so that map finds nothing there, while 26.3 reads it as the structure "
+              f"\"{tag}\" itself. The 26.3 form keeps \"{v}\"; check which was meant (a tag would "
+              f"be \"#...\")")
+    return v
 
 
 def new_function_list(funcs):
@@ -186,6 +274,20 @@ def new_function_list(funcs):
     if len(funcs) == 1:
         return funcs[0]
     return funcs
+
+
+def check_enchant_options(funcs):
+    """Note (and with --add-enchant-options fill in) enchant functions with no options.
+    Works on the old form, so both forms get the change."""
+    out = []
+    for f in funcs:
+        if isinstance(f, dict) and short(f.get("function", f.get("type"))) in ENCHANT_FUNCTIONS \
+                and "options" not in f:
+            R.note("enchant functions without options")
+            if ADD_ENCHANT_OPTIONS:
+                f = {**f, "options": ON_RANDOM_LOOT}
+        out.append(f)
+    return out
 
 
 def with_new_keys(obj, extra=None):
@@ -200,6 +302,8 @@ def with_new_keys(obj, extra=None):
     for k, v in obj.items():
         if from_old.get(k) or k in extra:
             continue  # rebuilt below, after the key it comes from
+        if k == "functions":
+            v = check_enchant_options(v)
         out[k] = v
         if k == "functions":
             m = new_function_list(v)
@@ -253,8 +357,179 @@ def convert_table(t, only_new=False):
     return t
 
 
+# --- Item modifier and predicate files: both forms in one object --------------------------------
+
+CONFLICT = object()
+# new keys go right after the old key they come from
+FOLLOWS = {"type": ("function", "condition"), "condition": ("conditions",), "blocks": ("block",),
+           "state": ("properties",)}
+
+
+def merge(old, new):
+    """One value both games can read: old and new keys side by side. CONFLICT when the same key
+    would need a different value in each (only an overlay can do that)."""
+    if isinstance(old, dict) and isinstance(new, dict):
+        out = {}
+        later = [k for k in new if k not in old]
+        for k, v in old.items():
+            if k in new:
+                m = merge(v, new[k])
+                if m is CONFLICT:
+                    return CONFLICT
+                out[k] = m
+            else:
+                out[k] = v
+            for nk in list(later):
+                if k in FOLLOWS.get(nk, ()):
+                    out[nk] = new[nk]
+                    later.remove(nk)
+        for nk in later:
+            out[nk] = new[nk]
+        return out
+    if isinstance(old, list) and isinstance(new, list):
+        if len(old) != len(new):
+            return CONFLICT
+        parts = [merge(a, b) for a, b in zip(old, new)]
+        return CONFLICT if any(p is CONFLICT for p in parts) else parts
+    return old if old == new else CONFLICT
+
+
+def convert_item_modifier(d):
+    if isinstance(d, list):  # a list is a sequence on both versions
+        d = check_enchant_options(d)
+        merged = [merge(f, new_function(f)) if isinstance(f, dict) else f for f in d]
+        return CONFLICT if any(m is CONFLICT for m in merged) else merged
+    if isinstance(d, dict):
+        d = check_enchant_options([d])[0]
+        return merge(d, new_function(d))
+    return d
+
+
+def convert_predicate(d):
+    if isinstance(d, list):
+        R.problem("the predicate file is a list: 26.3 wants one condition (minecraft:all_of), "
+                  "1.21 to 26.2 read the list; that needs an overlay, so it was left as it is")
+        return d
+    if isinstance(d, dict):
+        return merge(d, new_condition(d))
+    return d
+
+
+# --- Finding the files ---------------------------------------------------------------------------
+
+def formats_cover(entry, fmt):
+    """Does a pack.mcmeta overlay entry apply to data pack format `fmt`? None if it can't tell."""
+    lo = hi = None
+    f = entry.get("formats")
+    if isinstance(f, int):
+        lo = hi = f
+    elif isinstance(f, list) and f:
+        lo, hi = f[0], f[-1]
+    elif isinstance(f, dict):
+        lo, hi = f.get("min_inclusive"), f.get("max_inclusive")
+    lo = entry.get("min_format", lo)
+    hi = entry.get("max_format", hi)
+    lo = lo[0] if isinstance(lo, list) else lo
+    hi = hi[0] if isinstance(hi, list) else hi
+    if lo is None or hi is None:
+        return None
+    return lo <= fmt <= hi
+
+
+def skipped_overlays(resources):
+    """Overlay folders under a resources root that 26.3 never reads."""
+    meta = resources / "pack.mcmeta"
+    out = set()
+    if not meta.is_file():
+        return out
+    try:
+        entries = json.loads(meta.read_text(encoding="utf-8-sig")).get("overlays", {}).get("entries", [])
+    except (ValueError, AttributeError):
+        return out
+    for e in entries:
+        if isinstance(e, dict) and e.get("directory") and formats_cover(e, NEW_FORMAT) is False:
+            out.add((resources / e["directory"]).resolve())
+    return out
+
+
+def kind_of(path):
+    """loot_table / item_modifier / predicate, 'old' for 1.20 folders, 'other' for other data, or
+    None for files that aren't data at all."""
+    parts = path.parts
+    for name in reversed(parts[:-1]):
+        if name in KINDS:
+            return name
+        if name in OLD_KINDS:
+            return "old"
+    return "other" if "data" in parts[:-1] else None
+
+
+def sniff(path):
+    """A JSON file outside any data/ layout (a copied folder, say) counts as a loot table when it
+    has pools."""
+    try:
+        d = json.loads(path.read_bytes().decode("utf-8-sig"))
+    except (ValueError, UnicodeDecodeError, OSError):
+        return None
+    return "loot_table" if isinstance(d, dict) and isinstance(d.get("pools"), list) else None
+
+
+def data_root(path):
+    for p in path.parents:
+        if p.name == "data":
+            return p
+    return None
+
+
+def collect(paths):
+    files, skipped = [], {"1.20 folders": 0, "overlays 26.3 never reads": 0}
+    seen = set()
+    for p in paths:
+        p = Path(p)
+        if p.is_file():
+            cands, root = [p], p.parent
+        elif p.is_dir():
+            root = p / "src" / "main" / "resources" if (p / "src" / "main" / "resources").is_dir() else p
+            cands = sorted(x for x in root.rglob("*.json") if not SKIP_DIRS & set(x.relative_to(root).parts))
+        else:
+            raise SystemExit(f"not found: {p}")
+        skip = skipped_overlays(root)
+        for f in cands:
+            r = f.resolve()
+            if r in seen:
+                continue
+            seen.add(r)
+            if any(s in r.parents for s in skip):
+                skipped["overlays 26.3 never reads"] += 1
+                continue
+            k = kind_of(r) or sniff(r)
+            if k == "old":
+                skipped["1.20 folders"] += 1
+            elif k:
+                files.append((f, k))
+    return files, skipped
+
+
+OLD_DISPATCH = re.compile(r'"(function|condition)"\s*:\s*"')
+
+
+def convert_file(text, kind):
+    """(new data or None if nothing to do, CONFLICT handled) for one file's text."""
+    data = json.loads(text)
+    if kind == "loot_table":
+        return convert_table(data) if isinstance(data, dict) else data
+    if kind == "item_modifier":
+        return convert_item_modifier(data)
+    if kind == "predicate":
+        return convert_predicate(data)
+    if OLD_DISPATCH.search(text):
+        R.problem("has old-form functions or conditions (\"function\"/\"condition\" ids), which "
+                  "26.3 ignores; not a kind this script converts, so look at it by hand")
+    return None  # other data is only looked at, never written
+
+
 # --- Writing the change into the file's own text ---------------------------------------------
-# Tables are often laid out by hand. Rather than writing the whole file again, the new keys are
+# Files are often laid out by hand. Rather than writing the whole file again, the new keys are
 # put into the original text right after the key they come from, in the same layout as that key
 # (on its own line if it is on its own line, on one line if its value is on one line), and nothing
 # else in the file changes.
@@ -339,117 +614,175 @@ def line_start(text, i):
     return text.rfind("\n", 0, i) + 1
 
 
-def render_like(text, sample, v, unit):
+def render_like(text, sample, v, unit, nl):
     """Write v in the layout of `sample` (the old key's value node)."""
     old = text[sample.start:sample.end]
     if "\n" not in old:
         return compact(v, padded=len(old) > 1 and old[1] == " ")
     base = text[line_start(text, sample.start):sample.start]
     base = base[:len(base) - len(base.lstrip(" "))]
-    return json.dumps(v, indent=unit, ensure_ascii=False).replace("\n", "\n" + base)
+    return json.dumps(v, indent=unit, ensure_ascii=False).replace("\n", nl + base)
 
 
-def plan_edits(text, node, want, unit, edits):
+def plan_edits(text, node, want, unit, nl, edits):
     """Collect (start, end, new text) edits that turn node's text into `want`."""
     if isinstance(want, dict) and isinstance(node.items, list) and text[node.start] == "{":
         have = {k: (ks, n) for k, ks, n in node.items}
         if any(k not in want for k in have):  # a key would go: write the whole object again
-            edits.append((node.start, node.end, render_like(text, node, want, unit)))
+            edits.append((node.start, node.end, render_like(text, node, want, unit, nl)))
             return
-        prev = None
+        prev, pending = None, []
+
+        def flush():
+            if pending:
+                pks, pnode = have[prev]
+                before = text[line_start(text, pks):pks]
+                # the old key starts its own line: so do the new ones
+                sep = "," + nl + before if before.strip() == "" else ", "
+                edits.append((pnode.end, pnode.end, "".join(
+                    f"{sep}{json.dumps(k)}: {render_like(text, pnode, v, unit, nl)}" for k, v in pending)))
+                pending.clear()
+
         for k, v in want.items():
             if k in have:
-                plan_edits(text, have[k][1], v, unit, edits)
+                flush()
+                plan_edits(text, have[k][1], v, unit, nl, edits)
                 prev = k
-                continue
-            if prev is None:  # a new first key: not something this script makes
-                edits.append((node.start, node.end, render_like(text, node, want, unit)))
+            elif prev is None:  # a new first key: write the whole object again
+                edits.append((node.start, node.end, render_like(text, node, want, unit, nl)))
                 return
-            pks, pnode = have[prev]
-            before = text[line_start(text, pks):pks]
-            if before.strip() == "":  # the old key starts its own line: so does the new one
-                sep = ",\n" + before
             else:
-                sep = ", "
-            edits.append((pnode.end, pnode.end, f"{sep}{json.dumps(k)}: {render_like(text, pnode, v, unit)}"))
+                pending.append((k, v))
+        flush()
         return
     if isinstance(want, list) and isinstance(node.items, list) and text[node.start] == "[" \
             and len(want) == len(node.items):
         for n, v in zip(node.items, want):
-            plan_edits(text, n, v, unit, edits)
+            plan_edits(text, n, v, unit, nl, edits)
         return
     if json.loads(text[node.start:node.end]) != want:
-        edits.append((node.start, node.end, render_like(text, node, want, unit)))
+        edits.append((node.start, node.end, render_like(text, node, want, unit, nl)))
 
 
 def write_like(text, want):
-    """The file's text with the edits that make it `want`, keeping its layout and line endings."""
-    crlf = "\r\n" in text
-    t = text.replace("\r\n", "\n")
+    """The file's text with the edits that make it `want`. Everything else, line endings
+    included, stays byte for byte; new lines use the file's usual line ending."""
+    nl = "\r\n" if text.count("\r\n") * 2 > text.count("\n") else "\n"
     unit = 2
-    for line in t.splitlines()[1:]:
+    for line in text.splitlines()[1:]:
         stripped = line.lstrip(" ")
         if stripped and len(stripped) < len(line):
             unit = len(line) - len(stripped)
             break
     edits = []
-    plan_edits(t, parse(t), want, unit, edits)
-    for start, end, new in sorted(edits, reverse=True):
+    plan_edits(text, parse(text), want, unit, nl, edits)
+    t = text
+    for start, end, new in sorted(edits, key=lambda e: (e[0], e[1]), reverse=True):
         t = t[:start] + new + t[end:]
     if json.loads(t) != want:
         raise RuntimeError("the edited text does not read back as intended")
-    return t.replace("\n", "\r\n") if crlf else t
+    return t
 
 
-def default_folders():
-    data = PROJECT_ROOT / "src" / "main" / "resources" / "data"
-    return sorted(p for p in data.glob("*/loot_table") if p.is_dir())
+def added_keys(old, new, out):
+    """Count the keys `new` has that `old` hasn't, by name (not looking inside added values)."""
+    if isinstance(old, dict) and isinstance(new, dict):
+        for k, v in new.items():
+            if k in old:
+                added_keys(old[k], v, out)
+            else:
+                out[k] = out.get(k, 0) + 1
+    elif isinstance(old, list) and isinstance(new, list) and len(old) == len(new):
+        for a, b in zip(old, new):
+            added_keys(a, b, out)
+    return out
 
 
-def main():
-    global current_file
-    ap = argparse.ArgumentParser(description=__doc__.strip().split("\n")[0])
-    ap.add_argument("paths", nargs="*", help="loot table folders or files (default: every "
-                    "src/main/resources/data/*/loot_table)")
-    ap.add_argument("--check", action="store_true", help="change nothing; exit 1 if a table needs updating")
-    a = ap.parse_args()
+# --- Command line ---------------------------------------------------------------------------------
 
-    paths = [Path(p) for p in a.paths] or default_folders()
-    files = []
-    for p in paths:
-        if p.is_dir():
-            files += sorted(p.rglob("*.json"))
-        elif p.is_file():
-            files.append(p)
-        else:
-            print(f"not found: {p}", file=sys.stderr)
-            return 2
+def shown(f):
+    try:
+        return str(f.resolve().relative_to(Path.cwd().resolve()))
+    except ValueError:
+        return str(f)
 
-    changed = same = 0
-    for f in files:
-        rel = f.resolve().relative_to(PROJECT_ROOT) if f.resolve().is_relative_to(PROJECT_ROOT) else f
-        current_file = str(rel)
+
+def main(argv=None):
+    global R, ADD_ENCHANT_OPTIONS, DATA_ROOT
+    ap = argparse.ArgumentParser(description=__doc__.strip().split("\n")[0],
+                                 formatter_class=argparse.RawDescriptionHelpFormatter,
+                                 epilog="See the top of this file for what changes and why.")
+    ap.add_argument("paths", nargs="*", default=["."],
+                    help="mod repos, data folders, loot folders or files (default: the current folder)")
+    ap.add_argument("-n", "--dry-run", "--check", dest="dry", action="store_true",
+                    help="change nothing; list what would change; exit 1 if anything would")
+    ap.add_argument("--diff", action="store_true", help="with --dry-run, show each change")
+    ap.add_argument("--add-enchant-options", action="store_true",
+                    help=f'give enchant functions with no options "options": "{ON_RANDOM_LOOT}"')
+    a = ap.parse_args(argv)
+    ADD_ENCHANT_OPTIONS = a.add_enchant_options
+
+    files, skipped = collect(a.paths)
+    changed = 0
+    problems = []
+    notes_total = {}
+    for f, kind in files:
+        R = Report()
+        DATA_ROOT = data_root(f.resolve())
         text = f.read_bytes().decode("utf-8-sig")
-        data = json.loads(text)
-        if not isinstance(data, dict):
-            continue
-        new = write_like(text, convert_table(data))
+        try:
+            want = convert_file(text, kind)
+        except (ValueError, KeyError, TypeError, AttributeError) as e:
+            R.problem(f"could not read it as {kind}: {e!r}")
+            want = None
+        if want is CONFLICT:
+            R.problem("the two forms need different values for the same key, which only an overlay "
+                      "can hold; left as it is")
+            want = None
+        new = text if want is None else write_like(text, want)
+        for k, n in R.notes.items():
+            notes_total[k] = notes_total.get(k, 0) + n
+        problems += [(f, p) for p in R.problems]
+        note = ""
+        if R.notes:
+            note = "  [" + ", ".join(f"{n} {k}" for k, n in R.notes.items()) + "]"
         if new == text:
-            same += 1
+            if a.dry and R.notes:
+                print(f"already right: {shown(f)}{note}")
             continue
         changed += 1
-        if a.check:
-            print(f"needs the 26.3 form: {rel}")
+        adds = added_keys(json.loads(text), want, {})
+        what = ", ".join(f"{k} x{n}" for k, n in adds.items()) or "values changed"
+        if a.dry:
+            print(f"would update {shown(f)}: {what}{note}")
+            if a.diff:
+                sys.stdout.writelines(difflib.unified_diff(
+                    text.replace("\r\n", "\n").splitlines(True), new.replace("\r\n", "\n").splitlines(True),
+                    fromfile=shown(f), tofile=shown(f) + " (26.3 form added)"))
         else:
             f.write_bytes(new.encode("utf-8"))
-            print(f"updated {rel}")
+            print(f"updated {shown(f)}: {what}{note}")
 
-    for file, msg in problems:
-        print(f"CHECK BY HAND {file}: {msg}")
-    verb = "need updating" if a.check else "updated"
-    print(f"{len(files)} files, {changed} {verb}, {same} already right"
+    for f, p in problems:
+        print(f"CHECK BY HAND {shown(f)}: {p}")
+    kinds = {}
+    for _, k in files:
+        kinds[k] = kinds.get(k, 0) + 1
+    print("looked at " + (", ".join(f"{n} {k}" for k, n in sorted(kinds.items())) or "no data files")
+          + "".join(f"; skipped {n} in {k}" for k, n in skipped.items() if n))
+    verb = "would change" if a.dry else "changed"
+    print(f"{changed} {verb}, {len(files) - changed} left as they are"
           + (f", {len(problems)} to check by hand" if problems else ""))
-    return 1 if (a.check and changed) or problems else 0
+    if notes_total.get("enchant functions without options"):
+        n = notes_total["enchant functions without options"]
+        print(f"note: {n} enchant functions have no options, so they can roll any enchantment "
+              f"(curses, treasure ones, other mods'); the same on every version. "
+              + ("They now have " + ON_RANDOM_LOOT + "." if ADD_ENCHANT_OPTIONS
+                 else "--add-enchant-options gives them " + ON_RANDOM_LOOT + ", as vanilla chests have."))
+    if notes_total.get("ids without a namespace"):
+        print(f"note: {notes_total['ids without a namespace']} type ids have no namespace; every "
+              f"version reads them as minecraft:, and the 26.3 form writes it out.")
+    return 1 if problems or (a.dry and changed) else 0
 
 
 if __name__ == "__main__":
