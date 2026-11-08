@@ -1,0 +1,19 @@
+{
+  "name": "mfr:ruined/crossings/small/small_crossing_2_south",
+  "fallback": "minecraft:empty",
+  "elements": [
+    {
+      "weight": 1,
+      "element": {
+        "location": "mfr:1_21_9/ruined/crossings/small/small_crossing_south_straight_2",
+        "locations": {
+          "1.21-1.21.8": "mfr:1_21_0/ruined/crossings/small/small_crossing_south_straight_2",
+          "1.21.9-26.3": "mfr:1_21_9/ruined/crossings/small/small_crossing_south_straight_2"
+        },
+        "processors": "mfr:pillars",
+        "projection": "rigid",
+        "element_type": "moogs_structures:versioned_single_pool_element"
+      }
+    }
+  ]
+}

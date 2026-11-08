@@ -1,0 +1,22 @@
+{
+  "name": "mfr:ruined/crossings/small/lower/small_crossing_east_lower",
+  "fallback": "mfr:ruined/crossings/small/lower/small_crossing_east_lower",
+  "elements": [
+    {
+      "weight": 1,
+      "element": {
+        "location": "mfr:26_3_0/ruined/crossings/small/lower/small_crossing_east_lower_1",
+        "locations": {
+          "1.21-1.21.3": "mfr:1_21_0/ruined/crossings/small/lower/small_crossing_east_lower_1",
+          "1.21.4": "mfr:1_21_4/ruined/crossings/small/lower/small_crossing_east_lower_1",
+          "1.21.5-1.21.8": "mfr:1_21_5/ruined/crossings/small/lower/small_crossing_east_lower_1",
+          "1.21.9-26.2": "mfr:1_21_9/ruined/crossings/small/lower/small_crossing_east_lower_1",
+          "26.3": "mfr:26_3_0/ruined/crossings/small/lower/small_crossing_east_lower_1"
+        },
+        "processors": "mfr:pillars",
+        "projection": "rigid",
+        "element_type": "moogs_structures:versioned_single_pool_element"
+      }
+    }
+  ]
+}

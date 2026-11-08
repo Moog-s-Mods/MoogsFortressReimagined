@@ -1,0 +1,18 @@
+{
+  "name": "mfr:ruined/crossings/small/lower/small_crossing_lower",
+  "fallback": "minecraft:empty",
+  "elements": [
+    {
+      "weight": 1,
+      "element": {
+        "location": "mfr:1_21_0/ruined/crossings/small/lower/small_crossing_center_lower_1",
+        "locations": {
+          "1.21-26.3": "mfr:1_21_0/ruined/crossings/small/lower/small_crossing_center_lower_1"
+        },
+        "processors": "mfr:pillars",
+        "projection": "rigid",
+        "element_type": "moogs_structures:versioned_single_pool_element"
+      }
+    }
+  ]
+}
