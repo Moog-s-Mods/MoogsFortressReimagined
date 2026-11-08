@@ -36,7 +36,10 @@ Things it cannot convert safely (value_check, the "sum" number provider) are rep
 What it looks at, under each path given (a mod repo, a data folder, a loot folder or one file):
     loot_table/      both forms side by side, as above
     item_modifier/   each function gets both forms in the same object ("function" and "type",
-                     "conditions" and "condition"); the two games each read only their own keys
+                     "conditions" and "condition"); the two games each read only their own keys.
+                     A file that is a list is written as one minecraft:sequence object: 1.21 to
+                     26.2 read a list file as a sequence, but 26.3 reads one function per file.
+                     Both read the steps from "functions", so each step gets both forms there
     predicate/       the same for conditions; a predicate file that is a list can't hold both
                      (26.3 wants one object) and is reported as needing an overlay
     anything else under data/ with old-form functions or conditions in it (advancements,
@@ -401,10 +404,13 @@ def merge(old, new):
 
 
 def convert_item_modifier(d):
-    if isinstance(d, list):  # a list is a sequence on both versions
-        d = check_enchant_options(d)
-        merged = [merge(f, new_function(f)) if isinstance(f, dict) else f for f in d]
-        return CONFLICT if any(m is CONFLICT for m in merged) else merged
+    if isinstance(d, list):
+        # 1.21 to 26.2 read a list file as a sequence; 26.3 reads an item modifier file with the
+        # one-function codec only (the list form is for inline use), so it refuses a list. Written
+        # as the sequence it stands for, one object serves both: "function" and "type" side by
+        # side, and the steps under "functions", the key both read, each in both forms.
+        R.note("list written as one sequence")
+        d = {"function": "minecraft:sequence", "functions": check_enchant_options(d)}
     if isinstance(d, dict):
         d = check_enchant_options([d])[0]
         return merge(d, new_function(d))
