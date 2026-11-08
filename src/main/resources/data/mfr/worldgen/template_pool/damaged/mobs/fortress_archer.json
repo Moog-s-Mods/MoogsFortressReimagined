@@ -1,0 +1,20 @@
+{
+  "name": "mfr:damaged/mobs/fortress_archer",
+  "fallback": "minecraft:empty",
+  "elements": [
+    {
+      "weight": 1,
+      "element": {
+        "location": "mfr:1_21_5/intact/mobs/fortress_archer",
+        "locations": {
+          "1.21-1.21.1": "mfr:1_21_0/intact/mobs/fortress_archer",
+          "1.21.2-1.21.4": "mfr:1_21_2/intact/mobs/fortress_archer",
+          "1.21.5-26.3": "mfr:1_21_5/intact/mobs/fortress_archer"
+        },
+        "processors": "minecraft:empty",
+        "projection": "rigid",
+        "element_type": "moogs_structures:versioned_single_pool_element"
+      }
+    }
+  ]
+}

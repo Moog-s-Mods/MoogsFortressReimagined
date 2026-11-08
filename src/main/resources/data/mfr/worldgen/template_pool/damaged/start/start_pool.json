@@ -1,0 +1,29 @@
+{
+  "name": "mfr:damaged/start/start_pool",
+  "fallback": "minecraft:empty",
+  "elements": [
+    {
+      "weight": 1,
+      "element": {
+        "element_type": "moogs_structures:versioned_single_pool_element",
+        "location": "mfr:1_21_9/damaged/start/mega_crossing_center_1",
+        "locations": {
+          "1.21-1.21.5": "mfr:1_21_0/damaged/start/mega_crossing_center_1",
+          "1.21.6-1.21.8": "mfr:1_21_6/damaged/start/mega_crossing_center_1",
+          "1.21.9-26.3": "mfr:1_21_9/damaged/start/mega_crossing_center_1"
+        },
+        "processors": "mfr:pillars_armored",
+        "projection": "rigid",
+        "enhanced_terrain_adaptation": {
+          "kernel_size": 46,
+          "kernel_distance": 7,
+          "top": "carve",
+          "bottom": "carve",
+          "padding": {
+            "bottom": 4
+          }
+        }
+      }
+    }
+  ]
+}

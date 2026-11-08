@@ -1,0 +1,19 @@
+{
+  "name": "mfr:damaged/forks/roofless_fork_side_1_7",
+  "fallback": "mfr:damaged/ends/junction_ends/junction_end",
+  "elements": [
+    {
+      "weight": 1,
+      "element": {
+        "location": "mfr:1_21_9/damaged/forks/roofless_fork_side_1_7",
+        "locations": {
+          "1.21-1.21.8": "mfr:1_21_0/damaged/forks/roofless_fork_side_1_7",
+          "1.21.9-26.3": "mfr:1_21_9/damaged/forks/roofless_fork_side_1_7"
+        },
+        "processors": "mfr:pillars",
+        "projection": "rigid",
+        "element_type": "moogs_structures:versioned_single_pool_element"
+      }
+    }
+  ]
+}

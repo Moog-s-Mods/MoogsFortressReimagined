@@ -1,0 +1,20 @@
+{
+  "name": "mfr:damaged/crossings/large/large_crossing_west",
+  "fallback": "mfr:damaged/crossings/large/large_crossing_west",
+  "elements": [
+    {
+      "weight": 1,
+      "element": {
+        "location": "mfr:1_21_9/damaged/crossings/large/large_crossing_center_1",
+        "locations": {
+          "1.21-1.21.3": "mfr:1_21_0/damaged/crossings/large/large_crossing_center_1",
+          "1.21.4-1.21.8": "mfr:1_21_4/damaged/crossings/large/large_crossing_center_1",
+          "1.21.9-26.3": "mfr:1_21_9/damaged/crossings/large/large_crossing_center_1"
+        },
+        "processors": "mfr:pillars",
+        "projection": "rigid",
+        "element_type": "moogs_structures:versioned_single_pool_element"
+      }
+    }
+  ]
+}

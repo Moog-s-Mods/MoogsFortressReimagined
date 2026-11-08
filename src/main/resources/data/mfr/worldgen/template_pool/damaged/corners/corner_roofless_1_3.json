@@ -1,0 +1,18 @@
+{
+  "name": "mfr:damaged/corners/corner_roofless_1_3",
+  "fallback": "minecraft:empty",
+  "elements": [
+    {
+      "weight": 1,
+      "element": {
+        "location": "mfr:1_21_0/damaged/corners/corner_roofless_3_3",
+        "locations": {
+          "1.21-26.3": "mfr:1_21_0/damaged/corners/corner_roofless_3_3"
+        },
+        "processors": "mfr:pillars",
+        "projection": "rigid",
+        "element_type": "moogs_structures:versioned_single_pool_element"
+      }
+    }
+  ]
+}
