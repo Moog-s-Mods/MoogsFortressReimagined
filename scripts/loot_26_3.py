@@ -53,7 +53,8 @@ form only) is removed, so every version reads the same loot.
                                                             rewritten
     tag entry "name": "x"                                -> "items": "#x" (beside "name")
     a type id with no namespace ("set_count")            -> "minecraft:set_count"
-Things it cannot convert safely (value_check, the "sum" number provider) are reported.
+Things it cannot convert safely (value_check, the "sum" number provider) are reported, a pool's
+rolls included: both forms share those, so 26.3 reads them as they are.
 
 What it looks at, under each path given (a mod repo, a data folder, a loot folder or one file):
     loot_table/      both forms side by side, as above
@@ -201,6 +202,17 @@ def plain(v):
     if isinstance(v, list):
         return [plain(x) for x in v]
     return v
+
+
+def dropped_in_26_3(v):
+    """The ids 26.3 has dropped (NOT_CONVERTED) anywhere in v, a value both forms share."""
+    if isinstance(v, dict):
+        t = v.get("type")
+        t = "minecraft:" + t if isinstance(t, str) and ":" not in t else t
+        return ([t] if t in NOT_CONVERTED else []) + dropped_in_26_3(list(v.values()))
+    if isinstance(v, list):
+        return [t for x in v for t in dropped_in_26_3(x)]
+    return []
 
 
 # --- Old form -> 26.3 form ---------------------------------------------------------------------
@@ -481,6 +493,10 @@ def convert_table(t, only_new=False):
         for p in t["pools"]:
             p = dict(p)
             check_map_above(p.get("functions"), "pool", [p.get("entries")])
+            for k in ("rolls", "bonus_rolls"):
+                for gone in dropped_in_26_3(p.get(k)):
+                    R.problem(f"{gone} in a pool's {k}: {NOT_CONVERTED[gone]}; {k} is shared by both "
+                              f"forms, so 26.3 reads it as it is. Fix it by hand")
             if "entries" in p:
                 p["entries"] = [convert_entry(dict(e), only_new) for e in p["entries"]]
             pools.append(drop_old(with_new_keys(p)))

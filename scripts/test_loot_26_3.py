@@ -307,6 +307,22 @@ class TableForms(TableCase):
         self.assertTrue(any("value_check" in p for p in m.R.problems), m.R.problems)
         self.assertTrue(any("minecraft:sum" in p for p in m.R.problems), m.R.problems)
 
+    def test_a_sum_in_a_pools_rolls_is_reported(self):
+        # rolls are shared by both forms, so they never pass through the 26.3 copy
+        out = self.convert({"pools": [
+            {"rolls": {"type": "minecraft:sum", "summands": [1, 2]}, "entries": [item("minecraft:apple")]},
+            {"rolls": 1, "bonus_rolls": {"type": "uniform", "min": 0, "max": {"type": "sum", "summands": [1, 1]}},
+             "entries": [item("minecraft:apple")]}]})
+        self.assertEqual(out["pools"][0]["rolls"], {"type": "minecraft:sum", "summands": [1, 2]})  # left alone
+        self.assertEqual(sorted(p.split(":")[1].split(" in ")[0] for p in m.R.problems), ["sum", "sum"])
+        self.assertTrue(any("pool's rolls" in p for p in m.R.problems), m.R.problems)
+        self.assertTrue(any("pool's bonus_rolls" in p for p in m.R.problems), m.R.problems)
+
+    def test_ordinary_rolls_are_not_reported(self):
+        self.convert({"pools": [{"rolls": {"type": "minecraft:uniform", "min": 1, "max": 3},
+                                 "bonus_rolls": {"min": 0, "max": 1}, "entries": [item("minecraft:apple")]}]})
+        self.assertEqual(m.R.problems, [])
+
     def test_an_edited_old_form_refreshes_the_copy(self):
         once = self.convert(table(item("minecraft:apple", functions=[SC])))
         once["pools"][0]["entries"][0]["functions"][0]["count"] = 7
