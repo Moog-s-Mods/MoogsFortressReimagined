@@ -29,6 +29,20 @@ The old keys stay the source: edit those, then run this again to refresh the 26.
                                                             "#minecraft:on_treasure_maps"; the five
                                                             explorer map tags 26.3 renamed get their
                                                             new names; one that isn't a tag is reported
+    exploration_map on a plain minecraft:map             -> 26.3 writes the map onto the item it is
+                                                            given and no longer turns a minecraft:map
+                                                            into a filled map, so a plain map stays
+                                                            blank; vanilla names each map's own item
+                                                            instead. The entry's name is shared by both
+                                                            forms and those items don't exist before
+                                                            26.3, so the 26.3 copy sets the item first
+                                                            (set_item minecraft:buried_treasure_map for
+                                                            #minecraft:on_treasure_maps, the item vanilla
+                                                            uses for each map tag) and then keeps only
+                                                            filled maps (filtered on minecraft:map_id,
+                                                            on_fail discard), as vanilla 26.3 does; a
+                                                            destination with no vanilla map item is
+                                                            reported
     tag entry "name": "x"                                -> "items": "#x" (beside "name")
     a type id with no namespace ("set_count")            -> "minecraft:set_count"
 Things it cannot convert safely (value_check, the "sum" number provider) are reported.
@@ -101,6 +115,18 @@ MAP_TAGS_RENAMED = {
     "minecraft:on_trial_chambers_maps": "minecraft:on_buried_trial_chambers_maps",
     "minecraft:on_woodland_explorer_maps": "minecraft:on_woodland_mansion_maps",
 }
+# 26.3's map items, per destination tag (from vanilla 26.3's chests and cartographer trades).
+MAP_ITEMS = {"minecraft:on_" + tag: "minecraft:" + item for tag, item in (
+    ("treasure_maps", "buried_treasure_map"), ("ancient_city_maps", "buried_ancient_city_map"),
+    ("buried_trial_chambers_maps", "buried_trial_chambers_map"), ("mineshaft_maps", "buried_mineshaft_map"),
+    ("desert_pyramid_maps", "desert_pyramid_map"), ("jungle_pyramid_maps", "jungle_pyramid_map"),
+    ("ocean_ruin_warm_maps", "warm_ocean_ruins_map"), ("woodland_mansion_maps", "woodland_mansion_map"),
+    ("ocean_monument_maps", "ocean_monument_map"), ("swamp_hut_maps", "swamp_hut_map"),
+    ("desert_village_maps", "desert_village_map"), ("plains_village_maps", "plains_village_map"),
+    ("savanna_village_maps", "savanna_village_map"), ("snowy_village_maps", "snowy_village_map"),
+    ("taiga_village_maps", "taiga_village_map"))}
+KEEP_FILLED_MAPS = {"type": "minecraft:filtered", "item_filter": {"predicates": {"minecraft:map_id": {}}},
+                    "on_fail": {"type": "minecraft:discard"}}
 VANILLA_STRUCTURE_TAGS = {"minecraft:" + t for t in (
     "on_treasure_maps on_desert_village_maps on_plains_village_maps on_savanna_village_maps "
     "on_snowy_village_maps on_taiga_village_maps on_ancient_city_maps on_buried_trial_chambers_maps "
@@ -299,10 +325,45 @@ def check_enchant_options(funcs):
     return out
 
 
-def with_new_keys(obj, extra=None):
+def map_item_for(destination):
+    """The 26.3 map item vanilla uses for an exploration_map destination, or None."""
+    if not isinstance(destination, str):
+        return None
+    tag = namespaced(destination.lstrip("#"))
+    if tag.startswith("minecraft:on_abandoned_camp_"):
+        return "minecraft:abandoned_camp_map"
+    return MAP_ITEMS.get(tag)
+
+
+def with_map_steps(modifier):
+    """A plain minecraft:map's 26.3 modifier: each exploration_map gets its map item set before it
+    and only filled maps kept after it (26.3 writes the map onto the item it is given)."""
+    steps = modifier if isinstance(modifier, list) else [modifier]
+    out, has_item = [], False
+    for f in steps:
+        kind = short(f.get("type")) if isinstance(f, dict) else None
+        if kind == "set_item":
+            has_item = True
+        if kind == "exploration_map" and not has_item:
+            item = map_item_for(f.get("destination"))
+            if item is None:
+                R.problem(f"exploration_map on minecraft:map to {f.get('destination')}: on 26.3 a plain map "
+                          f"stays blank, and vanilla has no map item for that destination; put a set_item "
+                          f"with the map item to use before the exploration_map in the 26.3 form by hand")
+                out.append(f)
+                continue
+            out += [{"type": "minecraft:set_item", "item": item}, f, json.loads(json.dumps(KEEP_FILLED_MAPS))]
+            has_item = True
+            continue
+        out.append(f)
+    return out if len(out) > 1 else out[0]
+
+
+def with_new_keys(obj, extra=None, plain_map=False):
     """Return obj with "modifier"/"condition" (re)built from "functions"/"conditions", each right
     after its old key, and any key in `extra` ({new key: (after key, value)}) likewise.
-    A 26.3 key with no old key to come from is kept as it is (a hand-written 26.3 table)."""
+    A 26.3 key with no old key to come from is kept as it is (a hand-written 26.3 table).
+    plain_map: the object is a minecraft:map entry, whose 26.3 form gets the map steps."""
     extra = extra or {}
     from_old = {"modifier": "functions" in obj, "condition": "conditions" in obj}
     if not any(from_old.values()) and not extra:
@@ -316,6 +377,8 @@ def with_new_keys(obj, extra=None):
         out[k] = v
         if k == "functions":
             m = new_function_list(v)
+            if m is not None and plain_map:
+                m = with_map_steps(m)
             if m is not None:
                 out["modifier"] = m
         elif k == "conditions":
@@ -338,7 +401,8 @@ def convert_entry(e, only_new=False):
     extra = {}
     if short(e.get("type")) == "tag" and "name" in e:
         extra["items"] = ("name", tagged(e["name"]))
-    e = with_new_keys(e, extra)
+    plain_map = short(e.get("type")) == "item" and short(namespaced(e.get("name") or "")) == "map"
+    e = with_new_keys(e, extra, plain_map=plain_map)
     if only_new:
         for k in ("functions", "conditions"):
             e.pop(k, None)

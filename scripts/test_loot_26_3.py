@@ -67,6 +67,55 @@ class ListItemModifier(unittest.TestCase):
         self.assertEqual(out["condition"], {"type": "minecraft:random_chance", "chance": 0.5})
 
 
+MAP_OLD = {"function": "minecraft:exploration_map", "destination": "minecraft:on_treasure_maps",
+           "decoration": "red_x", "zoom": 1, "skip_existing_chunks": False}
+MAP_NEW = {"type": "minecraft:exploration_map", "destination": "#minecraft:on_treasure_maps",
+           "decoration": "red_x", "zoom": 1, "skip_existing_chunks": False}
+KEEP_FILLED = {"type": "minecraft:filtered", "item_filter": {"predicates": {"minecraft:map_id": {}}},
+               "on_fail": {"type": "minecraft:discard"}}
+
+
+def map_table(*functions, name="minecraft:map"):
+    return {"pools": [{"rolls": 1, "entries": [{"type": "minecraft:item", "name": name,
+                                                "functions": [dict(f) for f in functions]}]}]}
+
+
+class TreasureMap(unittest.TestCase):
+    """26.3 writes the map onto the item it is given: a plain minecraft:map stays blank."""
+
+    def setUp(self):
+        m.R = m.Report()
+
+    def entry(self, table):
+        return m.convert_table(json.loads(json.dumps(table)))["pools"][0]["entries"][0]
+
+    def test_a_plain_map_gets_its_map_item_and_keeps_only_filled_maps(self):
+        e = self.entry(map_table(MAP_OLD))
+        self.assertEqual(e["name"], "minecraft:map")            # shared by both forms
+        self.assertEqual(e["functions"], [MAP_OLD])              # the old form is untouched
+        self.assertEqual(e["modifier"], [{"type": "minecraft:set_item", "item": "minecraft:buried_treasure_map"},
+                                         MAP_NEW, KEEP_FILLED])
+
+    def test_other_functions_keep_their_place(self):
+        named = {"function": "minecraft:set_name", "name": "Treasure"}
+        e = self.entry(map_table(MAP_OLD, named))
+        self.assertEqual([f["type"] for f in e["modifier"]], ["minecraft:set_item", "minecraft:exploration_map",
+                                                               "minecraft:filtered", "minecraft:set_name"])
+
+    def test_converting_the_result_again_changes_nothing(self):
+        once = m.convert_table(json.loads(json.dumps(map_table(MAP_OLD))))
+        self.assertEqual(m.convert_table(json.loads(json.dumps(once))), once)
+
+    def test_a_destination_with_no_vanilla_map_item_is_reported(self):
+        e = self.entry(map_table(dict(MAP_OLD, destination="minecraft:on_treasure_maps_x")))
+        self.assertNotIn("set_item", json.dumps(e["modifier"]))
+        self.assertTrue(any("no map item" in p for p in m.R.problems), m.R.problems)
+
+    def test_an_item_that_is_not_a_plain_map_is_left_alone(self):
+        e = self.entry(map_table(MAP_OLD, name="minecraft:compass"))
+        self.assertEqual(e["modifier"], MAP_NEW)
+
+
 class CheckRun(unittest.TestCase):
     def run_main(self, *args):
         buf = io.StringIO()
