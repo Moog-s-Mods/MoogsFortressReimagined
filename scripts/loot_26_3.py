@@ -45,8 +45,10 @@ form only) is removed, so every version reads the same loot.
                                                             on_fail discard), as vanilla 26.3 does; a
                                                             destination with no vanilla map item is
                                                             reported. So is an exploration_map on a
-                                                            pool or table with a plain map under it
-                                                            (only one on the map entry gets its item),
+                                                            pool or table with a plain map under it,
+                                                            or inside a sequence or filtered (only one
+                                                            in the map entry's own functions gets its
+                                                            item),
                                                             and one with a condition on a plain map
                                                             (when it fails, 1.21 to 26.2 give an empty
                                                             map, the 26.3 form nothing); neither is
@@ -386,8 +388,31 @@ def with_map_steps(modifier):
             out += [{"type": "minecraft:set_item", "item": item}, f, json.loads(json.dumps(KEEP_FILLED_MAPS))]
             has_item = True
             continue
+        inside = None if has_item else map_inside(f)
+        if inside:
+            R.problem(f"exploration_map inside a {inside} on minecraft:map: 26.3 writes the map onto the item "
+                      f"it is given, so that map stays blank there, and only an exploration_map in the entry's "
+                      f"own functions gets its 26.3 map item; the 26.3 form copies it as it is. To fix: move the "
+                      f"exploration_map out of the {inside} into the entry's own functions in the old form and "
+                      f"run this again")
         out.append(f)
     return out if len(out) > 1 else out[0]
+
+
+# Functions that run more functions on the same item, and the fields those are in.
+STEP_FIELDS = {"sequence": ("functions",), "filtered": ("on_pass", "on_fail")}
+
+
+def map_inside(f):
+    """The kind of function ("sequence", "filtered") f is when an exploration_map runs inside it."""
+    kind = short(f.get("function", f.get("type"))) if isinstance(f, dict) else None
+    for key in STEP_FIELDS.get(kind, ()):
+        v = f.get(key)
+        for g in v if isinstance(v, list) else [v]:
+            if isinstance(g, dict) and short(g.get("function", g.get("type"))) == "exploration_map" \
+                    or map_inside(g):
+                return kind
+    return None
 
 
 def is_plain_map(e):
@@ -408,15 +433,22 @@ def holds_plain_map(entries):
 
 
 def check_map_above(funcs, where, entry_lists):
-    """Report an exploration_map on a pool or table with a plain minecraft:map under it: only one
-    on the map entry itself gets its 26.3 map item, so this map would stay blank on 26.3."""
-    if isinstance(funcs, list) and any(
-            isinstance(f, dict) and short(f.get("function", f.get("type"))) == "exploration_map" for f in funcs) \
-            and any(holds_plain_map(x) for x in entry_lists):
-        R.problem(f"exploration_map on the {where}, with a plain minecraft:map under it: 26.3 writes the map "
-                  f"onto the item it is given, so that map stays blank there, and only an exploration_map on "
-                  f"the map entry itself gets its 26.3 map item; the 26.3 form copies it as it is. To fix: "
-                  f"move the exploration_map onto the minecraft:map entry in the old form and run this again")
+    """Report an exploration_map on a pool or table (or inside a sequence or filtered there) with a
+    plain minecraft:map under it: only one in the map entry's own functions gets its 26.3 map item,
+    so this map would stay blank on 26.3."""
+    if not isinstance(funcs, list) or not any(holds_plain_map(x) for x in entry_lists):
+        return
+    for f in funcs:
+        is_map = isinstance(f, dict) and short(f.get("function", f.get("type"))) == "exploration_map"
+        inside = None if is_map else map_inside(f)
+        if is_map or inside:
+            R.problem(f"exploration_map on the {where}" + (f", inside a {inside}," if inside else ",")
+                      + " with a plain minecraft:map under it: 26.3 writes the map onto the item it is given, so "
+                        "that map stays blank there, and only an exploration_map in the map entry's own functions "
+                        "gets its 26.3 map item; the 26.3 form copies it as it is. To fix: move the exploration_map "
+                      + (f"out of the {inside} and " if inside else "")
+                      + "onto the minecraft:map entry in the old form and run this again")
+            return
 
 
 def with_new_keys(obj, extra=None, plain_map=False, gone=()):

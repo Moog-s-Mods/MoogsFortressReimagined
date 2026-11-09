@@ -489,6 +489,29 @@ class TreasureMap(unittest.TestCase):
                                          "entries": [item("minecraft:compass")]}]}))
         self.assertEqual(m.R.problems, [])
 
+    def test_a_map_inside_a_sequence_on_the_entry_is_reported_and_copied_as_it_is(self):
+        e = self.entry(map_table({"function": "minecraft:sequence", "functions": [MAP_OLD]}))
+        self.assertEqual(e["modifier"], {"type": "minecraft:sequence", "functions": [MAP_NEW]})
+        self.assertTrue(any("inside a sequence on minecraft:map" in p for p in m.R.problems), m.R.problems)
+
+    def test_a_map_inside_a_filtered_on_the_pool_is_reported(self):
+        m.convert_table(copy({"pools": [{"rolls": 1, "functions": [
+            {"function": "minecraft:filtered", "item_filter": {"items": "minecraft:map"}, "on_pass": MAP_OLD}],
+            "entries": [item("minecraft:map")]}]}))
+        self.assertTrue(any("on the pool, inside a filtered," in p for p in m.R.problems), m.R.problems)
+
+    def test_a_map_deep_in_a_sequence_on_the_table_is_reported(self):
+        m.convert_table(copy({"functions": [{"function": "minecraft:sequence", "functions": [
+            {"function": "minecraft:set_name", "name": "Treasure"},
+            {"function": "minecraft:filtered", "item_filter": {"items": "minecraft:map"}, "on_fail": MAP_OLD}]}],
+            "pools": [{"rolls": 1, "entries": [item("minecraft:map")]}]}))
+        self.assertTrue(any("on the table, inside a sequence," in p for p in m.R.problems), m.R.problems)
+
+    def test_a_sequence_with_no_map_in_it_is_not_reported(self):
+        self.entry(map_table({"function": "minecraft:sequence", "functions": [
+            {"function": "minecraft:set_name", "name": "Treasure"}]}))
+        self.assertEqual(m.R.problems, [])
+
     def test_a_map_with_a_condition_is_reported(self):
         e = self.entry(map_table(dict(MAP_OLD, conditions=[RC])))
         self.assertTrue(any("with a condition" in p for p in m.R.problems), m.R.problems)
