@@ -17,7 +17,9 @@ tables and code:
 These apply on tables, pools and entries (and an entry's children). Older games never read
 "modifier" or "condition" there, and 26.3 never reads "functions" or "conditions", so this script
 keeps the old keys as they are and writes the 26.3 keys beside them, built from the old ones.
-The old keys stay the source: edit those, then run this again to refresh the 26.3 copy.
+The old keys stay the source: edit those, then run this again to refresh the 26.3 copy. Delete one
+and its 26.3 copy goes too: a 26.3 key with no old key beside it (or a table written in the 26.3
+form only) is removed, so every version reads the same loot.
 
 26.3 also renamed a few things inside them, which the 26.3 copy gets:
     condition block_state_property {block, properties}   -> match_block {blocks, state}
@@ -134,6 +136,10 @@ VANILLA_STRUCTURE_TAGS = {"minecraft:" + t for t in (
     "on_ocean_ruin_warm_maps on_swamp_hut_maps on_woodland_mansion_maps abandoned_camp mineshaft "
     "ocean_ruin ruined_portal shipwreck village cats_spawn_in cats_spawn_as_black dolphin_located "
     "eye_of_ender_located").split()}
+
+# The 26.3 keys on tables, pools and entries, and the old key each is built from.
+NEW_KEYS = {"modifier": "functions", "condition": "conditions"}
+STALE = "26.3 keys with no old key"
 
 KINDS = {"loot_table", "item_modifier", "predicate"}
 OLD_KINDS = {"loot_tables", "item_modifiers", "predicates"}
@@ -359,19 +365,24 @@ def with_map_steps(modifier):
     return out if len(out) > 1 else out[0]
 
 
-def with_new_keys(obj, extra=None, plain_map=False):
+def with_new_keys(obj, extra=None, plain_map=False, gone=()):
     """Return obj with "modifier"/"condition" (re)built from "functions"/"conditions", each right
     after its old key, and any key in `extra` ({new key: (after key, value)}) likewise.
-    A 26.3 key with no old key to come from is kept as it is (a hand-written 26.3 table).
+    A 26.3 key whose old key is gone (deleted from the old form, or never there: a table written
+    in the 26.3 form only) is removed, so every version reads the same; `gone` names more keys to
+    remove that way (a tag entry's "items" with no "name").
     plain_map: the object is a minecraft:map entry, whose 26.3 form gets the map steps."""
     extra = extra or {}
-    from_old = {"modifier": "functions" in obj, "condition": "conditions" in obj}
-    if not any(from_old.values()) and not extra:
+    stale = [k for k, old in NEW_KEYS.items() if k in obj and old not in obj]
+    stale += [k for k in gone if k in obj]
+    for _ in stale:
+        R.note(STALE)
+    if not any(old in obj for old in NEW_KEYS.values()) and not extra and not stale:
         return obj
     out = {}
     for k, v in obj.items():
-        if from_old.get(k) or k in extra:
-            continue  # rebuilt below, after the key it comes from
+        if k in NEW_KEYS or k in extra or k in stale:
+            continue  # rebuilt below, after the key it comes from, or removed
         if k == "functions":
             v = check_enchant_options(v)
         out[k] = v
@@ -398,11 +409,14 @@ def convert_entry(e, only_new=False):
         e["children"] = [convert_entry(dict(c), only_new) for c in e["children"]]
     if short(e.get("type")) == "loot_table" and isinstance(e.get("value"), dict):
         e["value"] = convert_table(dict(e["value"]), only_new)  # a table written inline
-    extra = {}
-    if short(e.get("type")) == "tag" and "name" in e:
-        extra["items"] = ("name", tagged(e["name"]))
+    extra, gone = {}, ()
+    if short(e.get("type")) == "tag":
+        if "name" in e:
+            extra["items"] = ("name", tagged(e["name"]))
+        else:
+            gone = ("items",)
     plain_map = short(e.get("type")) == "item" and short(namespaced(e.get("name") or "")) == "map"
-    e = with_new_keys(e, extra, plain_map=plain_map)
+    e = with_new_keys(e, extra, plain_map=plain_map, gone=gone)
     if only_new:
         for k in ("functions", "conditions"):
             e.pop(k, None)
@@ -704,9 +718,20 @@ def plan_edits(text, node, want, unit, nl, edits):
     """Collect (start, end, new text) edits that turn node's text into `want`."""
     if isinstance(want, dict) and isinstance(node.items, list) and text[node.start] == "{":
         have = {k: (ks, n) for k, ks, n in node.items}
-        if any(k not in want for k in have):  # a key would go: write the whole object again
-            edits.append((node.start, node.end, render_like(text, node, want, unit, nl)))
+        if not want or next(iter(want)) not in have:
+            # every key goes, or a new first key: write the whole object again
+            if want or have:
+                edits.append((node.start, node.end, render_like(text, node, want, unit, nl)))
             return
+        items = node.items
+        lead = 0
+        while items[lead][0] not in want:  # the first key of `want` is in the text, so this stops
+            lead += 1
+        if lead:  # the first keys go: the first one kept moves up into their place
+            edits.append((items[0][1], items[lead][1], ""))
+        for i in range(lead + 1, len(items)):
+            if items[i][0] not in want:  # a key goes, with the comma before it
+                edits.append((items[i - 1][2].end, items[i][2].end, ""))
         prev, pending = None, []
 
         def flush():
@@ -724,9 +749,6 @@ def plan_edits(text, node, want, unit, nl, edits):
                 flush()
                 plan_edits(text, have[k][1], v, unit, nl, edits)
                 prev = k
-            elif prev is None:  # a new first key: write the whole object again
-                edits.append((node.start, node.end, render_like(text, node, want, unit, nl)))
-                return
             else:
                 pending.append((k, v))
         flush()
@@ -760,17 +782,21 @@ def write_like(text, want):
     return t
 
 
-def added_keys(old, new, out):
-    """Count the keys `new` has that `old` hasn't, by name (not looking inside added values)."""
+def key_changes(old, new, out):
+    """Count the keys `new` adds ("modifier") and drops ("modifier removed") next to `old`, by
+    name (not looking inside added or dropped values)."""
     if isinstance(old, dict) and isinstance(new, dict):
         for k, v in new.items():
             if k in old:
-                added_keys(old[k], v, out)
+                key_changes(old[k], v, out)
             else:
                 out[k] = out.get(k, 0) + 1
+        for k in old:
+            if k not in new:
+                out[k + " removed"] = out.get(k + " removed", 0) + 1
     elif isinstance(old, list) and isinstance(new, list) and len(old) == len(new):
         for a, b in zip(old, new):
-            added_keys(a, b, out)
+            key_changes(a, b, out)
     return out
 
 
@@ -827,8 +853,8 @@ def main(argv=None):
                 print(f"already right: {shown(f)}{note}")
             continue
         changed += 1
-        adds = added_keys(json.loads(text), want, {})
-        what = ", ".join(f"{k} x{n}" for k, n in adds.items()) or "values changed"
+        keys = key_changes(json.loads(text), want, {})
+        what = ", ".join(f"{k} x{n}" for k, n in keys.items()) or "values changed"
         if a.dry:
             print(f"would update {shown(f)}: {what}{note}")
             if a.diff:
@@ -855,6 +881,11 @@ def main(argv=None):
               f"(curses, treasure ones, other mods'); the same on every version. "
               + ("They now have " + ON_RANDOM_LOOT + "." if ADD_ENCHANT_OPTIONS
                  else "--add-enchant-options gives them " + ON_RANDOM_LOOT + ", as vanilla chests have."))
+    if notes_total.get(STALE):
+        print(f"note: {notes_total[STALE]} 26.3 keys (modifier, condition, a tag entry's items) had no old key "
+              f"beside them, deleted from the old form or never written there, so "
+              f"{'they would be' if a.dry else 'they were'} removed and every version reads the same. "
+              f"To keep one, write it in the old form and run this again.")
     if notes_total.get("ids without a namespace"):
         print(f"note: {notes_total['ids without a namespace']} type ids have no namespace; every "
               f"version reads them as minecraft:, and the 26.3 form writes it out.")
