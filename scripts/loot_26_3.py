@@ -86,6 +86,7 @@ It only needs Python 3.9+, so it can be copied into any mod's scripts/ or run fr
 Only the 1.21 branches need it.
 """
 import argparse
+import codecs
 import difflib
 import json
 import re
@@ -664,8 +665,9 @@ def convert_file(text, kind):
 # --- Writing the change into the file's own text ---------------------------------------------
 # Files are often laid out by hand. Rather than writing the whole file again, the new keys are
 # put into the original text right after the key they come from, in the same layout as that key
-# (on its own line if it is on its own line, on one line if its value is on one line), and nothing
-# else in the file changes.
+# (on its own line if it is on its own line, on one line if its value is on one line, indented with
+# the file's tabs or spaces), and nothing else in the file changes, a byte order mark included. A
+# 26.3 key that goes is cut out with the comma before it.
 
 class Node:
     __slots__ = ("start", "end", "items")
@@ -753,7 +755,7 @@ def render_like(text, sample, v, unit, nl):
     if "\n" not in old:
         return compact(v, padded=len(old) > 1 and old[1] == " ")
     base = text[line_start(text, sample.start):sample.start]
-    base = base[:len(base) - len(base.lstrip(" "))]
+    base = base[:len(base) - len(base.lstrip(" \t"))]
     return json.dumps(v, indent=unit, ensure_ascii=False).replace("\n", nl + base)
 
 
@@ -807,13 +809,14 @@ def plan_edits(text, node, want, unit, nl, edits):
 
 def write_like(text, want):
     """The file's text with the edits that make it `want`. Everything else, line endings
-    included, stays byte for byte; new lines use the file's usual line ending."""
+    included, stays byte for byte; new lines use the file's usual line ending, and new blocks its
+    indent (tabs or spaces, from the first indented line)."""
     nl = "\r\n" if text.count("\r\n") * 2 > text.count("\n") else "\n"
-    unit = 2
+    unit = "  "
     for line in text.splitlines()[1:]:
-        stripped = line.lstrip(" ")
+        stripped = line.lstrip(" \t")
         if stripped and len(stripped) < len(line):
-            unit = len(line) - len(stripped)
+            unit = line[:len(line) - len(stripped)]
             break
     edits = []
     plan_edits(text, parse(text), want, unit, nl, edits)
@@ -874,7 +877,9 @@ def main(argv=None):
     for f, kind in files:
         R = Report()
         DATA_ROOT = data_root(f.resolve())
-        text = f.read_bytes().decode("utf-8-sig")
+        raw = f.read_bytes()
+        bom = codecs.BOM_UTF8 if raw.startswith(codecs.BOM_UTF8) else b""  # written back as it was
+        text = raw.decode("utf-8-sig")
         try:
             want = convert_file(text, kind)
         except (ValueError, KeyError, TypeError, AttributeError) as e:
@@ -905,7 +910,7 @@ def main(argv=None):
                     text.replace("\r\n", "\n").splitlines(True), new.replace("\r\n", "\n").splitlines(True),
                     fromfile=shown(f), tofile=shown(f) + " (26.3 form added)"))
         else:
-            f.write_bytes(new.encode("utf-8"))
+            f.write_bytes(bom + new.encode("utf-8"))
             print(f"updated {shown(f)}: {what}{note}")
 
     for f, p in problems:
