@@ -137,6 +137,8 @@ MAP_ITEMS = {"minecraft:on_" + tag: "minecraft:" + item for tag, item in (
     ("desert_village_maps", "desert_village_map"), ("plains_village_maps", "plains_village_map"),
     ("savanna_village_maps", "savanna_village_map"), ("snowy_village_maps", "snowy_village_map"),
     ("taiga_village_maps", "taiga_village_map"))}
+# A map tag of a mod's own gets its 26.3 map item by a line here, such as
+# MAP_ITEMS["mymod:on_tower_maps"] = "minecraft:buried_treasure_map"
 KEEP_FILLED_MAPS = {"type": "minecraft:filtered", "item_filter": {"predicates": {"minecraft:map_id": {}}},
                     "on_fail": {"type": "minecraft:discard"}}
 VANILLA_STRUCTURE_TAGS = {"minecraft:" + t for t in (
@@ -375,8 +377,11 @@ def with_map_steps(modifier):
             item = map_item_for(f.get("destination"))
             if item is None:
                 R.problem(f"exploration_map on minecraft:map to {f.get('destination')}: on 26.3 a plain map "
-                          f"stays blank, and vanilla has no map item for that destination; put a set_item "
-                          f"with the map item to use before the exploration_map in the 26.3 form by hand")
+                          f"stays blank, and vanilla has no map item for that destination, so the 26.3 form "
+                          f"copies it as it is. To fix (each run builds the 26.3 form again from the old one, "
+                          f"so fix it there or here): point the old form's destination at a tag vanilla has a "
+                          f"map item for (the minecraft:on_*_maps tags), or add the destination and the 26.3 "
+                          f"map item to give it to MAP_ITEMS at the top of this script; then run this again")
                 out.append(f)
                 continue
             if "condition" in f:

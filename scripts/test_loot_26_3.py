@@ -10,6 +10,7 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import loot_26_3 as m  # noqa: E402
@@ -456,6 +457,29 @@ class TreasureMap(unittest.TestCase):
         e = self.entry(map_table(dict(MAP_OLD, destination="minecraft:on_treasure_maps_x")))
         self.assertNotIn("set_item", json.dumps(e["modifier"]))
         self.assertTrue(any("no map item" in p for p in m.R.problems), m.R.problems)
+
+    def test_the_no_map_item_report_gives_a_fix_the_next_run_keeps(self):
+        # a hand edit to the 26.3 form would be undone by the next run, so the fix goes elsewhere
+        self.entry(map_table(dict(MAP_OLD, destination="minecraft:village")))
+        report = [p for p in m.R.problems if "no map item" in p]
+        self.assertEqual(len(report), 1, m.R.problems)
+        self.assertNotIn("in the 26.3 form by hand", report[0])
+        self.assertIn("point the old form's destination at a tag vanilla has a map item for", report[0])
+        self.assertIn("MAP_ITEMS", report[0])
+
+    def test_a_mod_map_tag_added_to_map_items_gets_its_item(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            data = Path(tmp) / "data"
+            tag = data / "mymod" / "tags" / "worldgen" / "structure" / "on_tower_maps.json"
+            tag.parent.mkdir(parents=True)
+            tag.write_text('{"values": ["mymod:tower"]}', encoding="utf-8")
+            with mock.patch.object(m, "DATA_ROOT", data), \
+                    mock.patch.dict(m.MAP_ITEMS, {"mymod:on_tower_maps": "minecraft:buried_treasure_map"}):
+                e = self.entry(map_table(dict(MAP_OLD, destination="mymod:on_tower_maps")))
+        self.assertEqual(e["modifier"], [
+            {"type": "minecraft:set_item", "item": "minecraft:buried_treasure_map"},
+            dict(MAP_NEW, destination="#mymod:on_tower_maps"), KEEP_FILLED])
+        self.assertEqual(m.R.problems, [])
 
     def test_an_item_that_is_not_a_plain_map_is_left_alone(self):
         e = self.entry(map_table(MAP_OLD, name="minecraft:compass"))
