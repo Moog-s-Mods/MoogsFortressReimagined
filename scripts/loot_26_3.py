@@ -44,7 +44,13 @@ form only) is removed, so every version reads the same loot.
                                                             filled maps (filtered on minecraft:map_id,
                                                             on_fail discard), as vanilla 26.3 does; a
                                                             destination with no vanilla map item is
-                                                            reported
+                                                            reported. So is an exploration_map on a
+                                                            pool or table with a plain map under it
+                                                            (only one on the map entry gets its item),
+                                                            and one with a condition on a plain map
+                                                            (when it fails, 1.21 to 26.2 give an empty
+                                                            map, the 26.3 form nothing); neither is
+                                                            rewritten
     tag entry "name": "x"                                -> "items": "#x" (beside "name")
     a type id with no namespace ("set_count")            -> "minecraft:set_count"
 Things it cannot convert safely (value_check, the "sum" number provider) are reported.
@@ -358,11 +364,46 @@ def with_map_steps(modifier):
                           f"with the map item to use before the exploration_map in the 26.3 form by hand")
                 out.append(f)
                 continue
+            if "condition" in f:
+                R.problem(f"exploration_map with a condition on minecraft:map to {f.get('destination')}: when "
+                          f"the condition fails, 1.21 to 26.2 give a plain empty map, but the 26.3 form gives "
+                          f"nothing (it sets the map item first and keeps only filled maps); left that way. "
+                          f"If the empty map isn't meant to drop, put the condition on the entry in the old "
+                          f"form instead and run this again")
             out += [{"type": "minecraft:set_item", "item": item}, f, json.loads(json.dumps(KEEP_FILLED_MAPS))]
             has_item = True
             continue
         out.append(f)
     return out if len(out) > 1 else out[0]
+
+
+def is_plain_map(e):
+    return isinstance(e, dict) and short(e.get("type")) == "item" and e.get("name") in ("map", "minecraft:map")
+
+
+def holds_plain_map(entries):
+    """Is a plain minecraft:map among these entries, their children or a table written inline?"""
+    for e in entries if isinstance(entries, list) else ():
+        if not isinstance(e, dict):
+            continue
+        value = e.get("value") if short(e.get("type")) == "loot_table" else None
+        pools = value.get("pools") if isinstance(value, dict) else None
+        if is_plain_map(e) or holds_plain_map(e.get("children")) or any(
+                isinstance(p, dict) and holds_plain_map(p.get("entries")) for p in pools or ()):
+            return True
+    return False
+
+
+def check_map_above(funcs, where, entry_lists):
+    """Report an exploration_map on a pool or table with a plain minecraft:map under it: only one
+    on the map entry itself gets its 26.3 map item, so this map would stay blank on 26.3."""
+    if isinstance(funcs, list) and any(
+            isinstance(f, dict) and short(f.get("function", f.get("type"))) == "exploration_map" for f in funcs) \
+            and any(holds_plain_map(x) for x in entry_lists):
+        R.problem(f"exploration_map on the {where}, with a plain minecraft:map under it: 26.3 writes the map "
+                  f"onto the item it is given, so that map stays blank there, and only an exploration_map on "
+                  f"the map entry itself gets its 26.3 map item; the 26.3 form copies it as it is. To fix: "
+                  f"move the exploration_map onto the minecraft:map entry in the old form and run this again")
 
 
 def with_new_keys(obj, extra=None, plain_map=False, gone=()):
@@ -432,11 +473,13 @@ def convert_table(t, only_new=False):
                 o.pop(k, None)
         return o
 
+    check_map_above(t.get("functions"), "table", [p.get("entries") for p in t.get("pools") or ()])
     t = drop_old(with_new_keys(t))
     if "pools" in t:
         pools = []
         for p in t["pools"]:
             p = dict(p)
+            check_map_above(p.get("functions"), "pool", [p.get("entries")])
             if "entries" in p:
                 p["entries"] = [convert_entry(dict(e), only_new) for e in p["entries"]]
             pools.append(drop_old(with_new_keys(p)))
