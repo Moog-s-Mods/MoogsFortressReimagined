@@ -161,6 +161,38 @@
           "weight": 1
         }
       ]
+    },
+    {
+      "rolls": 1,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:map",
+          "weight": 1,
+          "functions": [
+            {
+              "function": "minecraft:exploration_map",
+              "destination": "mfr:on_intact_fortress_maps",
+              "decoration": "mansion",
+              "zoom": 2,
+              "search_radius": 1,
+              "skip_existing_chunks": false
+            },
+            {
+              "function": "minecraft:set_name",
+              "name": {
+                "translate": "filled_map.mfr.intact_fortress_map",
+                "fallback": "Intact Fortress Map"
+              },
+              "target": "item_name"
+            }
+          ]
+        },
+        {
+          "type": "minecraft:empty",
+          "weight": 4
+        }
+      ]
     }
   ],
   "random_sequence": "mfr:chests/ruined/treasure"
