@@ -139,6 +139,7 @@ MAP_ITEMS = {"minecraft:on_" + tag: "minecraft:" + item for tag, item in (
     ("taiga_village_maps", "taiga_village_map"))}
 # A map tag of a mod's own gets its 26.3 map item by a line here, such as
 # MAP_ITEMS["mymod:on_tower_maps"] = "minecraft:buried_treasure_map"
+MAP_ITEMS["mfr:on_intact_fortress_maps"] = "minecraft:woodland_mansion_map"
 KEEP_FILLED_MAPS = {"type": "minecraft:filtered", "item_filter": {"predicates": {"minecraft:map_id": {}}},
                     "on_fail": {"type": "minecraft:discard"}}
 VANILLA_STRUCTURE_TAGS = {"minecraft:" + t for t in (
