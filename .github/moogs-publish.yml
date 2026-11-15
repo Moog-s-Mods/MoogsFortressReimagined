@@ -2,9 +2,9 @@
 # Lives on the DEFAULT branch (1.21-datapack) only; every publish branch reads it from here.
 # Schema per release-actions docs/v2-contracts.md.
 #
-# TODO: NOT ONBOARDED YET. The CurseForge and Modrinth pages do not exist, so every project id,
-# slug and image url below is blank. Fill them in (moogs-publish-onboard skill) before the
-# first tagged release. Do not copy ids from another mod. The Structure Lib dependency is the
+# TODO: NOT FULLY ONBOARDED YET. The CurseForge and Modrinth project ids are set; the image urls
+# below are still blank. Finish them (moogs-publish-onboard skill) before the first tagged
+# release. Do not copy ids from another mod. The Structure Lib dependency is the
 # library's own page, not an MNS id, so it stays.
 schema: 1
 mod:
@@ -14,8 +14,8 @@ mod:
   name: MoogsFortressReimagined
   validate: true
 platforms:
-  curseforge: { projectId: "", slug: "" }   # TODO: CurseForge project id and slug
-  modrinth:   { projectId: "", slug: "" }   # TODO: Modrinth project id and slug
+  curseforge: { projectId: 1789689, slug: mfr-moogs-fortress-reimagined }
+  modrinth:   { projectId: BKn4wrii, slug: mfr-moogs-fortress-reimagined }
 discord:
   embedColor: "#c20045"
   avatarUrl: ""      # TODO: MFR avatar
