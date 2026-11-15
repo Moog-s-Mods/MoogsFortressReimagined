@@ -6,8 +6,8 @@
         {
             "id": "replace_nether_fortress",
             "name": "Replace Nether Fortress",
-            "description": "Replace the vanilla nether fortress with Moog's fortress. Its common chests use the vanilla nether fortress loot so mod loot injections still show up.",
-            "default_enabled": false,
+            "description": "Replace the vanilla nether fortress with Moog's intact, damaged and ruined fortresses, and Moog's Nether Structures' mega fortress too when that mod is installed. Its common chests use the vanilla nether fortress loot so mod loot injections still show up.",
+            "default_enabled": true,
             "replacements": [
                 {
                     "vanilla_key": "fortress",
@@ -18,6 +18,39 @@
                         "inherit_spawn_overrides": true,
                         "redirect_locate": true,
                         "mirror_tags": true
+                    }
+                },
+                {
+                    "vanilla_key": "fortress_damaged",
+                    "vanilla_structure": "minecraft:fortress",
+                    "replacement_structure": "mfr:damaged_fortress",
+                    "options": {
+                        "alias_lookups": true,
+                        "inherit_spawn_overrides": true,
+                        "redirect_locate": true,
+                        "mirror_tags": true
+                    }
+                },
+                {
+                    "vanilla_key": "fortress_ruined",
+                    "vanilla_structure": "minecraft:fortress",
+                    "replacement_structure": "mfr:ruined_fortress",
+                    "options": {
+                        "alias_lookups": true,
+                        "inherit_spawn_overrides": true,
+                        "redirect_locate": true,
+                        "mirror_tags": true
+                    }
+                },
+                {
+                    "vanilla_key": "mega_fortress",
+                    "vanilla_structure": "mns:mega_fortress",
+                    "replacement_structure": "mfr:intact_fortress",
+                    "options": {
+                        "alias_lookups": false,
+                        "inherit_spawn_overrides": false,
+                        "redirect_locate": false,
+                        "mirror_tags": false
                     }
                 }
             ]
