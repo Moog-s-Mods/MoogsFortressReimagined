@@ -14,9 +14,9 @@
 
 **ABOUT**
 
-Moog's Fortress Reimagined is a reimagined nether fortress: a huge, many-roomed fortress that comes in three versions, intact, damaged and ruined. The more intact the fortress, the tougher the fights and the better the loot. It replaces the vanilla nether fortress by default.
+Moog's Fortress Reimagined is a reimagined nether fortress: a huge, many-roomed fortress that comes in three versions, intact, damaged and ruined. The more intact the fortress, the tougher the fights and the better the loot.
 
-By default, it replaces the vanilla fortress. This can be disabled in Moogs Structure Lib's config.
+By default, it replaces the vanilla nether fortress. This can be turned off in Moog's Structure Lib's config.
 
 **REQUIRED**
 
