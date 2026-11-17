@@ -194,7 +194,7 @@
           "1.20-1.20.4": "mfr:1_20_0/intact/forks/roofless_fork_main_1",
           "1.20.5-1.20.6": "mfr:1_20_5/intact/forks/roofless_fork_main_1"
         },
-        "processors": "mfr:pillars",
+        "processors": "mfr:pillars_armored",
         "projection": "rigid",
         "element_type": "moogs_structures:versioned_single_pool_element"
       }
