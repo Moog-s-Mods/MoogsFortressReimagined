@@ -98,6 +98,7 @@
           "armor": {
             "chest": {
               "id": "minecraft:iron_chestplate",
+              "Count": 1,
               "tag": {
                 "Trim": {
                   "material": "minecraft:copper",
@@ -106,7 +107,8 @@
               }
             },
             "feet": {
-              "id": "minecraft:iron_boots"
+              "id": "minecraft:iron_boots",
+              "Count": 1
             }
           }
         },
@@ -115,6 +117,7 @@
           "armor": {
             "head": {
               "id": "minecraft:chainmail_helmet",
+              "Count": 1,
               "tag": {
                 "Trim": {
                   "material": "minecraft:iron",
@@ -124,6 +127,7 @@
             },
             "chest": {
               "id": "minecraft:chainmail_chestplate",
+              "Count": 1,
               "tag": {
                 "Trim": {
                   "material": "minecraft:iron",
@@ -132,10 +136,12 @@
               }
             },
             "legs": {
-              "id": "minecraft:chainmail_leggings"
+              "id": "minecraft:chainmail_leggings",
+              "Count": 1
             },
             "feet": {
-              "id": "minecraft:chainmail_boots"
+              "id": "minecraft:chainmail_boots",
+              "Count": 1
             }
           }
         },
@@ -144,6 +150,7 @@
           "armor": {
             "head": {
               "id": "minecraft:golden_helmet",
+              "Count": 1,
               "tag": {
                 "Trim": {
                   "material": "minecraft:gold",
@@ -153,6 +160,7 @@
             },
             "chest": {
               "id": "minecraft:golden_chestplate",
+              "Count": 1,
               "tag": {
                 "Trim": {
                   "material": "minecraft:gold",
@@ -161,7 +169,8 @@
               }
             },
             "legs": {
-              "id": "minecraft:golden_leggings"
+              "id": "minecraft:golden_leggings",
+              "Count": 1
             }
           }
         },
@@ -170,6 +179,7 @@
           "armor": {
             "head": {
               "id": "minecraft:iron_helmet",
+              "Count": 1,
               "tag": {
                 "Trim": {
                   "material": "minecraft:gold",
@@ -179,6 +189,7 @@
             },
             "chest": {
               "id": "minecraft:iron_chestplate",
+              "Count": 1,
               "tag": {
                 "Trim": {
                   "material": "minecraft:gold",
@@ -193,10 +204,12 @@
               }
             },
             "legs": {
-              "id": "minecraft:iron_leggings"
+              "id": "minecraft:iron_leggings",
+              "Count": 1
             },
             "feet": {
-              "id": "minecraft:iron_boots"
+              "id": "minecraft:iron_boots",
+              "Count": 1
             }
           }
         },
@@ -205,6 +218,7 @@
           "armor": {
             "head": {
               "id": "minecraft:iron_helmet",
+              "Count": 1,
               "tag": {
                 "Trim": {
                   "material": "minecraft:netherite",
@@ -214,6 +228,7 @@
             },
             "chest": {
               "id": "minecraft:diamond_chestplate",
+              "Count": 1,
               "tag": {
                 "Trim": {
                   "material": "minecraft:netherite",
@@ -229,6 +244,7 @@
             },
             "legs": {
               "id": "minecraft:iron_leggings",
+              "Count": 1,
               "tag": {
                 "Trim": {
                   "material": "minecraft:netherite",
@@ -237,7 +253,8 @@
               }
             },
             "feet": {
-              "id": "minecraft:iron_boots"
+              "id": "minecraft:iron_boots",
+              "Count": 1
             }
           }
         }
