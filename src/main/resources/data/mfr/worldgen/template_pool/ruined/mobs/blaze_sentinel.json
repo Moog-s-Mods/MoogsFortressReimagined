@@ -5,11 +5,11 @@
     {
       "weight": 1,
       "element": {
-        "location": "mfr:1_21_5/intact/mobs/blaze_sentinel",
+        "location": "mfr:1_21_5/ruined/mobs/blaze_sentinel",
         "locations": {
-          "1.21-1.21.1": "mfr:1_21_0/intact/mobs/blaze_sentinel",
-          "1.21.2-1.21.4": "mfr:1_21_2/intact/mobs/blaze_sentinel",
-          "1.21.5-26.3": "mfr:1_21_5/intact/mobs/blaze_sentinel"
+          "1.21-1.21.1": "mfr:1_21_0/ruined/mobs/blaze_sentinel",
+          "1.21.2-1.21.4": "mfr:1_21_2/ruined/mobs/blaze_sentinel",
+          "1.21.5-26.3": "mfr:1_21_5/ruined/mobs/blaze_sentinel"
         },
         "processors": "minecraft:empty",
         "projection": "rigid",
