@@ -3,12 +3,12 @@
   "fallback": "minecraft:empty",
   "elements": [
     {
-      "weight": 4,
+      "weight": 3,
       "element": {
-        "location": "mfr:1_20_5/intact/mobs/fortress_guard",
+        "location": "mfr:1_20_5/ruined/mobs/fortress_guard",
         "locations": {
-          "1.20-1.20.4": "mfr:1_20_0/intact/mobs/fortress_guard",
-          "1.20.5-1.20.6": "mfr:1_20_5/intact/mobs/fortress_guard"
+          "1.20-1.20.4": "mfr:1_20_0/ruined/mobs/fortress_guard",
+          "1.20.5-1.20.6": "mfr:1_20_5/ruined/mobs/fortress_guard"
         },
         "processors": "minecraft:empty",
         "projection": "rigid",
@@ -18,11 +18,10 @@
     {
       "weight": 3,
       "element": {
-        "location": "mfr:1_20_5/intact/mobs/fortress_archer",
+        "location": "mfr:1_20_5/ruined/mobs/fortress_archer",
         "locations": {
-          "1.20-1.20.1": "mfr:1_20_0/intact/mobs/fortress_archer",
-          "1.20.2-1.20.4": "mfr:1_20_2/intact/mobs/fortress_archer",
-          "1.20.5-1.20.6": "mfr:1_20_5/intact/mobs/fortress_archer"
+          "1.20-1.20.4": "mfr:1_20_0/ruined/mobs/fortress_archer",
+          "1.20.5-1.20.6": "mfr:1_20_5/ruined/mobs/fortress_archer"
         },
         "processors": "minecraft:empty",
         "projection": "rigid",
@@ -32,23 +31,10 @@
     {
       "weight": 3,
       "element": {
-        "location": "mfr:1_20_5/intact/mobs/black_guard",
+        "location": "mfr:1_20_5/ruined/mobs/black_guard",
         "locations": {
-          "1.20-1.20.4": "mfr:1_20_0/intact/mobs/black_guard",
-          "1.20.5-1.20.6": "mfr:1_20_5/intact/mobs/black_guard"
-        },
-        "processors": "minecraft:empty",
-        "projection": "rigid",
-        "element_type": "moogs_structures:versioned_single_pool_element"
-      }
-    },
-    {
-      "weight": 2,
-      "element": {
-        "location": "mfr:1_20_5/intact/mobs/blaze_sentinel",
-        "locations": {
-          "1.20-1.20.4": "mfr:1_20_0/intact/mobs/blaze_sentinel",
-          "1.20.5-1.20.6": "mfr:1_20_5/intact/mobs/blaze_sentinel"
+          "1.20-1.20.4": "mfr:1_20_0/ruined/mobs/black_guard",
+          "1.20.5-1.20.6": "mfr:1_20_5/ruined/mobs/black_guard"
         },
         "processors": "minecraft:empty",
         "projection": "rigid",
@@ -58,14 +44,20 @@
     {
       "weight": 1,
       "element": {
-        "location": "mfr:1_20_5/intact/mobs/fortress_champion",
+        "location": "mfr:1_20_5/ruined/mobs/blaze_sentinel",
         "locations": {
-          "1.20-1.20.4": "mfr:1_20_0/intact/mobs/fortress_champion",
-          "1.20.5-1.20.6": "mfr:1_20_5/intact/mobs/fortress_champion"
+          "1.20-1.20.4": "mfr:1_20_0/ruined/mobs/blaze_sentinel",
+          "1.20.5-1.20.6": "mfr:1_20_5/ruined/mobs/blaze_sentinel"
         },
         "processors": "minecraft:empty",
         "projection": "rigid",
         "element_type": "moogs_structures:versioned_single_pool_element"
+      }
+    },
+    {
+      "weight": 18,
+      "element": {
+        "element_type": "minecraft:empty_pool_element"
       }
     }
   ]
